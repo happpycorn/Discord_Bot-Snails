@@ -1,8 +1,8 @@
 import os
 import discord
-from db import MessageManager
 from dotenv import load_dotenv
 from discord.ext import commands
+from db import MessageManager, MessageAnlyzer
 
 # 載入 TOKEN
 load_dotenv()
@@ -15,6 +15,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # 引入程式
 messageManager = MessageManager()
+messageAnlyzer = MessageAnlyzer()
 
 # 當機器人準備完成
 @bot.event
@@ -25,5 +26,9 @@ async def on_ready():
 @bot.command()
 async def fetch_recent_messages(ctx):
     await messageManager.fetch_recent_messages(ctx)
+
+@bot.command()
+async def data_send(ctx, data_type: str):
+    await messageAnlyzer.data_send(ctx, data_type)
 
 bot.run(TOKEN)

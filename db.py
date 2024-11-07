@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime, timedelta
 from tqdm import tqdm
+import pandas as pd
 
 class SqliteDataBase:
 
@@ -64,6 +65,24 @@ class MessageManager(SqliteDataBase):
 
 class MessageAnlyzer(SqliteDataBase):
 
-    def __init__(self):
+    data_types = {
+        'channel' : """
+        SELECT channel, COUNT(*) as message_count
+        FROM messages
+        GROUP BY channel
+        ORDER BY message_count DESC
+        LIMIT 3;
+        """
+    }
+
+    def __init__(self) -> None:
 
         super().__init__('messages.db')
+
+    async def data_send(self, ctx, datatype : str) -> None:
+
+        conn, _ = self.connect_to_db()
+
+        df = pd.read_sql_query(self.data_types[datatype], conn)
+
+        await ctx.send(df)
