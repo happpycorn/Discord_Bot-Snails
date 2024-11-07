@@ -175,4 +175,4 @@ async def loopchange(ctx,change :str = ""):
         loop = not loop
     await ctx.send(f"loop == {loop}")
 
-client.run(Token.dctoken)
+client.run(Token.DCTOKEN)
