@@ -46,10 +46,11 @@ class MessageManager(SqliteDataBase):
     
         one_week_ago = datetime.now() - timedelta(days=7)
         conn, cursor = self.connect_to_db()
+        cursor.execute("DELETE FROM messages")
         
         # 抓取近一週的訊息
         for channel in tqdm(ctx.guild.text_channels):
-            async for message in channel.history(after=one_week_ago):
+            async for message in channel.history(limit=None, after=one_week_ago):
 
                 if str(message.author) in self.black_list:
                     continue
@@ -57,7 +58,7 @@ class MessageManager(SqliteDataBase):
                 # 將訊息存入資料庫
                 cursor.execute('INSERT OR IGNORE INTO messages VALUES (?, ?, ?, ?, ?)', 
                         (message.id, message.content, str(message.author), str(message.channel), str(message.created_at)))
-        
+    
         conn.commit()
         conn.close()
 
