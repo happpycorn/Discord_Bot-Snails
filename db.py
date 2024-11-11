@@ -26,8 +26,8 @@ class SqliteDataBase:
 class MessageCatcher(SqliteDataBase):
 
     channel_permission = {
-        'public' : '1139183046818545794',
-        'member' : '1160152151167860786'
+        '1139183046818545794' : 'public',
+        '1160152151167860786' : 'member'
     }
 
     def __init__(self) -> None:
@@ -39,22 +39,26 @@ class MessageCatcher(SqliteDataBase):
 
             conn, cursor = self.connect_to_db(db_path)
 
-            # 資料庫結構 : 訊息 ID, 文字內容, 發送者, 頻道, 時間
+            # 資料庫結構 : 訊息 ID, 文字內容, 發送者, 頻道, 類別, 時間
             cursor.execute('''CREATE TABLE IF NOT EXISTS messages
-                        (message_id INTEGER PRIMARY KEY, content TEXT, author TEXT, channel TEXT, timestamp TEXT)''')
+                        (message_id INTEGER PRIMARY KEY, content TEXT, author TEXT, channel TEXT, category TEXT, timestamp TEXT)''')
             
             conn.commit()
             conn.close()
     
     # 加入訊息
     async def add_message(self, message) -> None:
+        
+        print(f"Received message: {message.content} from {message.author}")
 
         db_path = self.get_db_path(message)
 
+        print(db_path)
+
         conn, cursor = self.connect_to_db(db_path)
 
-        cursor.execute('INSERT OR IGNORE INTO messages VALUES (?, ?, ?, ?, ?)', 
-        (message.id, message.content, str(message.author), str(message.channel), str(message.created_at)))
+        cursor.execute('INSERT OR IGNORE INTO messages VALUES (?, ?, ?, ?, ?, ?)', 
+        (message.id, message.content, str(message.author), str(message.channel), str(message.channel.category.id), str(message.created_at)))
 
         conn.commit()
         conn.close()
@@ -66,9 +70,9 @@ class MessageCatcher(SqliteDataBase):
         category = message.channel.category
 
         # 判斷有沒有在 id 中
-        if category and category.id in self.channel_permission.items():
+        if category and str(category.id) in self.channel_permission.keys():
 
-            key = self.channel_permission[category.id]
+            key = self.channel_permission[str(category.id)]
             return self.db_paths.get(key, self.db_paths['staff'])
         
         # 沒有的話回傳 staff

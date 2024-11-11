@@ -28,8 +28,6 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    print(f"Received message: {message.content} from {message.author}")
-
     await messageManager.add_message(message)
     await bot.process_commands(message)
     
