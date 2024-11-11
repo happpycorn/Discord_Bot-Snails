@@ -53,8 +53,6 @@ class MessageCatcher(SqliteDataBase):
 
         db_path = self.get_db_path(message)
 
-        print(db_path)
-
         conn, cursor = self.connect_to_db(db_path)
 
         cursor.execute('INSERT OR IGNORE INTO messages VALUES (?, ?, ?, ?, ?, ?)', 
