@@ -3,3 +3,5 @@ python-dotenv
 tqdm
 pandas
 wordcloud
+audioop-lts
+python-dotenv
