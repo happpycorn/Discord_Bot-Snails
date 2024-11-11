@@ -32,12 +32,7 @@ async def on_message(message):
 
     await messageManager.add_message(message)
     await bot.process_commands(message)
-
-# 指令：抓取指定頻道中近一週的訊息
-# @bot.command()
-# async def fetch_recent_messages(ctx):
-#     await messageManager.fetch_recent_messages(ctx)
-
+    
 # 傳送資料
 @bot.command()
 async def popular_channel(ctx):
@@ -47,5 +42,10 @@ async def popular_channel(ctx):
 @bot.command()
 async def draw_word_cloud(ctx):
     await messageAnlyzer.draw_word_cloud(ctx)
+
+# 指令：抓取指定頻道中近一週的訊息
+# @bot.command()
+# async def fetch_recent_messages(ctx):
+#     await messageManager.fetch_recent_messages(ctx)
 
 bot.run(TOKEN)
