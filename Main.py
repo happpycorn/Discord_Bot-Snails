@@ -2,7 +2,7 @@ import os
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
-from db import MessageManager, MessageAnlyzer
+from db import MessageCatcher, MessageAnlyzer
 
 # 載入 TOKEN
 load_dotenv()
@@ -14,7 +14,7 @@ intents.messages = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # 引入程式
-messageManager = MessageManager()
+messageManager = MessageCatcher()
 messageAnlyzer = MessageAnlyzer()
 
 # 當機器人準備完成

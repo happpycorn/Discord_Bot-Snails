@@ -1,50 +1,57 @@
 import discord
 import sqlite3
 import pandas as pd
-from tqdm import tqdm
 from wordcloud import WordCloud
-from datetime import datetime, timedelta
+from datetime import datetime
 
 class SqliteDataBase:
 
     # 初始化資料庫
-    def __init__(self, db_path) -> None:
+    def __init__(self) -> None:
 
-        self.db_path = db_path
+        self.db_paths = {
+            'public': 'public_messages.db',
+            'member': 'member_messages.db',
+            'staff': 'staff_messages.db'
+        }
 
     # 連接資料庫
-    def connect_to_db(self):
+    def connect_to_db(self, db_path) -> tuple:
 
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row  # 讓結果以字典格式返回 ***
 
         return (conn, conn.cursor())
 
-class MessageManager(SqliteDataBase):
+class MessageCatcher(SqliteDataBase):
 
-    black_list = [
-        "小蝸#0685",
-        "YEE式機器龍#9027"
-    ]
+    channel_permission = {
+        'public' : '1139183046818545794',
+        'member' : '1160152151167860786'
+    }
 
     def __init__(self) -> None:
 
-        super().__init__('messages.db')
+        super().__init__()
 
         # 初始化資料庫
+        for db_path in self.db_paths.values():
 
-        conn, cursor = self.connect_to_db()
+            conn, cursor = self.connect_to_db(db_path)
 
-        # 資料庫結構 : 訊息 ID, 文字內容, 發送者, 頻道, 時間
-        cursor.execute('''CREATE TABLE IF NOT EXISTS messages
-                    (message_id INTEGER PRIMARY KEY, content TEXT, author TEXT, channel TEXT, timestamp TEXT)''')
-        
-        conn.commit()
-        conn.close()
+            # 資料庫結構 : 訊息 ID, 文字內容, 發送者, 頻道, 時間
+            cursor.execute('''CREATE TABLE IF NOT EXISTS messages
+                        (message_id INTEGER PRIMARY KEY, content TEXT, author TEXT, channel TEXT, timestamp TEXT)''')
+            
+            conn.commit()
+            conn.close()
     
+    # 加入訊息
     async def add_message(self, message) -> None:
 
-        conn, cursor = self.connect_to_db()
+        db_path = self.get_db_path(message)
+
+        conn, cursor = self.connect_to_db(db_path)
 
         cursor.execute('INSERT OR IGNORE INTO messages VALUES (?, ?, ?, ?, ?)', 
         (message.id, message.content, str(message.author), str(message.channel), str(message.created_at)))
@@ -52,40 +59,33 @@ class MessageManager(SqliteDataBase):
         conn.commit()
         conn.close()
 
-    # 不使用
-    async def fetch_recent_messages(self, ctx) -> None:
+    # 回傳合適的路徑
+    def get_db_path(self, message):
 
-        await ctx.send('Fetching messages from the past week...')
-    
-        one_week_ago = datetime.now() - timedelta(days=7)
-        conn, cursor = self.connect_to_db()
-        cursor.execute("DELETE FROM messages")
+        # 取得類別
+        category = message.channel.category
+
+        # 判斷有沒有在 id 中
+        if category and category.id in self.channel_permission.items():
+
+            key = self.channel_permission[category.id]
+            return self.db_paths.get(key, self.db_paths['staff'])
         
-        # 抓取近一週的訊息
-        for channel in tqdm(ctx.guild.text_channels):
-            async for message in channel.history(limit=None, after=one_week_ago):
-
-                if str(message.author) in self.black_list:
-                    continue
-
-                # 將訊息存入資料庫
-                cursor.execute('INSERT OR IGNORE INTO messages VALUES (?, ?, ?, ?, ?)', 
-                        (message.id, message.content, str(message.author), str(message.channel), str(message.created_at)))
-    
-        conn.commit()
-        conn.close()
-
-        await ctx.send('Recent messages from the past week have been fetched and saved to the database.')
+        # 沒有的話回傳 staff
+        return self.db_paths['staff']
 
 class MessageAnlyzer(SqliteDataBase):
 
     def __init__(self) -> None:
 
-        super().__init__('messages.db')
+        super().__init__()
 
-    async def popular_channel(self, ctx) -> None:
+    # 尋找說最多話的頻道
+    async def popular_channel(self, ctx, db_path=None) -> None:
 
-        conn, _ = self.connect_to_db()
+        if db_path is None: db_path = self.db_paths['public']
+
+        conn, _ = self.connect_to_db(db_path)
 
         df = pd.read_sql_query(
             """
@@ -119,11 +119,14 @@ class MessageAnlyzer(SqliteDataBase):
         # Send the embed with the data
         await ctx.send(embed=embed)
     
-    async def draw_word_cloud(self, ctx) -> None:
+    # 繪製文字雲
+    async def draw_word_cloud(self, ctx, db_path=None) -> None:
 
         await ctx.send("waiting...")
 
-        conn, _ = self.connect_to_db()
+        if db_path is None: db_path = self.db_paths['public']
+
+        conn, _ = self.connect_to_db(db_path)
 
         text = pd.read_sql_query(
             """
