@@ -1,7 +1,9 @@
+import discord
 import sqlite3
-from datetime import datetime, timedelta
-from tqdm import tqdm
 import pandas as pd
+from tqdm import tqdm
+from wordcloud import WordCloud
+from datetime import datetime, timedelta
 
 class SqliteDataBase:
 
@@ -39,7 +41,18 @@ class MessageManager(SqliteDataBase):
         
         conn.commit()
         conn.close()
+    
+    async def add_message(self, message) -> None:
 
+        conn, cursor = self.connect_to_db()
+
+        cursor.execute('INSERT OR IGNORE INTO messages VALUES (?, ?, ?, ?, ?)', 
+        (message.id, message.content, str(message.author), str(message.channel), str(message.created_at)))
+
+        conn.commit()
+        conn.close()
+
+    # 不使用
     async def fetch_recent_messages(self, ctx) -> None:
 
         await ctx.send('Fetching messages from the past week...')
@@ -66,24 +79,67 @@ class MessageManager(SqliteDataBase):
 
 class MessageAnlyzer(SqliteDataBase):
 
-    data_types = {
-        'channel' : """
-        SELECT channel, COUNT(*) as message_count
-        FROM messages
-        GROUP BY channel
-        ORDER BY message_count DESC
-        LIMIT 3;
-        """
-    }
-
     def __init__(self) -> None:
 
         super().__init__('messages.db')
 
-    async def data_send(self, ctx, datatype : str) -> None:
+    async def popular_channel(self, ctx) -> None:
 
         conn, _ = self.connect_to_db()
 
-        df = pd.read_sql_query(self.data_types[datatype], conn)
+        df = pd.read_sql_query(
+            """
+            SELECT channel, COUNT(*) as message_count
+            FROM messages
+            WHERE timestamp >= DATE('now', '-7 days')
+            GROUP BY channel
+            ORDER BY message_count DESC
+            LIMIT 3;
+            """, conn)
 
-        await ctx.send(df)
+        if df.empty:
+            await ctx.send("No data available.")
+            return
+
+        embed = discord.Embed(
+            title="Top Channels by Message Count in the Past Week",
+            description=
+            f"""
+
+            #1 | {df.iloc[0]['message_count']:<6} | {df.iloc[0]['channel']}
+
+            #2 | {df.iloc[1]['message_count']:<6} | {df.iloc[1]['channel']}
+
+            #3 | {df.iloc[2]['message_count']:<6} | {df.iloc[2]['channel']}
+            """,
+            timestamp=datetime.utcnow(),
+            color=discord.Color.blue()
+        )
+
+        # Send the embed with the data
+        await ctx.send(embed=embed)
+    
+    async def draw_word_cloud(self, ctx) -> None:
+
+        await ctx.send("waiting...")
+
+        conn, _ = self.connect_to_db()
+
+        text = pd.read_sql_query(
+            """
+            SELECT content FROM messages
+            WHERE timestamp >= DATE('now', '-7 days')
+            """, conn)
+
+        text = text = ' '.join(text['content'].dropna())
+
+        wordcloud = WordCloud(
+            font_path="asset\IBMPlexSansTC-Light.ttf",
+            width=4096, height=2160, colormap='Blues',
+            background_color="white",
+            mode='RGBA'
+            ).generate(text)
+
+        wordcloud.to_file("asset\wordcloud.png")
+
+        await ctx.send(file=discord.File("asset\wordcloud.png"))
