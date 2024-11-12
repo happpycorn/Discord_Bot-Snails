@@ -1,8 +1,8 @@
 import discord
 import pandas as pd
-from database.db import SqliteDataBase
 from datetime import datetime
 from wordcloud import WordCloud
+from database.db import SqliteDataBase
 
 class MessageAnlyzer(SqliteDataBase):
 
