@@ -6,9 +6,9 @@ class SqliteDataBase:
     def __init__(self) -> None:
 
         self.db_paths = {
-            'public': 'database\public_messages.db',
-            'member': 'database\member_messages.db',
-            'staff' : 'database\staff_messages.db'
+            'public': 'database\\public_messages.db',
+            'member': 'database\\member_messages.db',
+            'staff' : 'database\\staff_messages.db'
         }
 
     # 連接資料庫

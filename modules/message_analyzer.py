@@ -67,12 +67,12 @@ class MessageAnlyzer(SqliteDataBase):
         text = text = ' '.join(text['content'].dropna())
 
         wordcloud = WordCloud(
-            font_path="asset\IBMPlexSansTC-Light.ttf",
+            font_path="asset\\IBMPlexSansTC-Light.ttf",
             width=4096, height=2160, colormap='Blues',
             background_color="white",
             mode='RGBA'
             ).generate(text)
 
-        wordcloud.to_file("asset\wordcloud.png")
+        wordcloud.to_file("asset\\wordcloud.png")
 
-        await ctx.send(file=discord.File("asset\wordcloud.png"))
+        await ctx.send(file=discord.File("asset\\wordcloud.png"))
