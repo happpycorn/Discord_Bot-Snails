@@ -1,5 +1,5 @@
 .env
 asset\wordcloud.png
-public_messages.db
-member_messages.db
-staff_messages.db
+database\public_messages.db
+database\member_messages.db
+database\staff_messages.db
