@@ -1,6 +1,6 @@
 import discord
 import pandas as pd
-from db import SqliteDataBase
+from database.db import SqliteDataBase
 from datetime import datetime
 from wordcloud import WordCloud
 

@@ -1,4 +1,4 @@
-from db import SqliteDataBase
+from database.db import SqliteDataBase
 
 class MessageCatcher(SqliteDataBase):
 
