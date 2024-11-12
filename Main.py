@@ -2,7 +2,9 @@ import os
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
-from db import MessageCatcher, MessageAnlyzer
+from modules.message_saver import MessageCatcher
+from modules.message_analyzer import MessageAnlyzer
+from modules.category_fetcher import list_categories
 
 # 載入 TOKEN
 load_dotenv()
@@ -40,5 +42,10 @@ async def popular_channel(ctx):
 @bot.command()
 async def draw_word_cloud(ctx):
     await messageAnlyzer.draw_word_cloud(ctx)
+
+# 抓取類別
+@bot.command()
+async def list_categories(ctx):
+    await list_categories(ctx)
 
 bot.run(TOKEN)
