@@ -31,17 +31,28 @@ class MessageAnlyzer(SqliteDataBase):
             await ctx.send("No data available.")
             return
 
-        embed = discord.Embed(
-            title="Top Channels by Message Count in the Past Week",
-            description=
-            f"""
+        description = f"""
 
-            #1 | {df.iloc[0]['message_count']:<6} | {df.iloc[0]['channel']}
+        #1 | {df.iloc[0]['message_count']:<6} | {df.iloc[0]['channel']}
+        """
+
+        if len(df) > 2:
+
+            description += f"""
 
             #2 | {df.iloc[1]['message_count']:<6} | {df.iloc[1]['channel']}
+            """
+
+        if len(df) > 3:
+
+            description += f"""
 
             #3 | {df.iloc[2]['message_count']:<6} | {df.iloc[2]['channel']}
-            """,
+            """
+
+        embed = discord.Embed(
+            title="Top Channels by Message Count in the Past Week",
+            description=description,
             timestamp=datetime.utcnow(),
             color=discord.Color.blue()
         )

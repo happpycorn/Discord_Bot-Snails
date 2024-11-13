@@ -1,14 +1,17 @@
+import os
 import sqlite3
 
 class SqliteDataBase:
 
     # 初始化資料庫
     def __init__(self) -> None:
+        
+        folder_path = "database"
 
         self.db_paths = {
-            'public': 'database\\public_messages.db',
-            'member': 'database\\member_messages.db',
-            'staff' : 'database\\staff_messages.db'
+            'public': os.path.join(folder_path, 'public_messages.db'),
+            'member': os.path.join(folder_path, 'member_messages.db'),
+            'staff' : os.path.join(folder_path, 'staff_messages.db'),
         }
 
     # 連接資料庫

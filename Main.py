@@ -11,8 +11,7 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 # 設定機器人
-intents = discord.Intents.default()
-intents.messages = True
+intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # 引入程式
