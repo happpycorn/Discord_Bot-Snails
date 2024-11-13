@@ -18,7 +18,14 @@ class MessageCatcher(SqliteDataBase):
 
             # 資料庫結構 : 訊息 ID, 文字內容, 發送者, 頻道, 類別, 時間
             cursor.execute('''CREATE TABLE IF NOT EXISTS messages
-                        (message_id INTEGER PRIMARY KEY, content TEXT, author TEXT, channel TEXT, category TEXT, timestamp TEXT)''')
+                        (
+                            message_id INTEGER PRIMARY KEY, 
+                            content TEXT, 
+                            author TEXT, 
+                            channel TEXT, 
+                            category TEXT, 
+                            timestamp TEXT
+                        )''')
             
             conn.commit()
             conn.close()
@@ -33,7 +40,14 @@ class MessageCatcher(SqliteDataBase):
         conn, cursor = self.connect_to_db(db_path)
 
         cursor.execute('INSERT OR IGNORE INTO messages VALUES (?, ?, ?, ?, ?, ?)', 
-        (message.id, message.content, str(message.author), str(message.channel), str(message.channel.category.id), str(message.created_at)))
+        (
+            message.id, 
+            message.content, 
+            str(message.author), 
+            str(message.channel), 
+            str(message.channel.category.id), 
+            str(message.created_at)
+        ))
 
         conn.commit()
         conn.close()

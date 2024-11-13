@@ -5,3 +5,7 @@ pandas
 wordcloud
 audioop-lts
 python-dotenv
+jieba
+scikit-learn
+sumy
+ckip_transformers
