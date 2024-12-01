@@ -1,11 +1,12 @@
+# main
 discord.py
 python-dotenv
-tqdm
-pandas
+
+# Analyze
 wordcloud
-audioop-lts
-python-dotenv
-jieba
-scikit-learn
+
+# LDA
+tqdm
 sumy
+pandas
 ckip_transformers
