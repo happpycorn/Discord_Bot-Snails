@@ -4,6 +4,7 @@ A bot designed to gather all messages and use them to perform various tasks, suc
 
 ## Main Function
 
+* Catch each message in server
 * Generating a weekly report
 * Creating self-reports
 
@@ -54,17 +55,27 @@ discord_bot/
 
 2. Install requirements from `requirement.txt`
 
-    You can use Conda (Discord requires a special installation in Conda, so you’ll need to install it separately :D):
-
-    ```bash
-    conda install --file requirements.txt
-    conda install conda-forge::discord.py
-    ```
-
-    or use pip:
+    You can use Pip:
 
     ```bash
     pip install -r requirements.txt
+    ```
+
+    or use Conda:
+
+    ```bash
+    conda install conda-forge::discord.py
+    conda install conda-forge::python-dotenv
+    conda install conda-forge::wordcloud
+    conda install conda-forge::tqdm
+    conda install conda-forge::sumy
+    conda install conda-forge::pandas
+    ```
+
+    but ckip_transformers still need install by pip:
+
+    ```bash
+    pip install ckip-transformers
     ```
 
 3. Run `main.py`:
