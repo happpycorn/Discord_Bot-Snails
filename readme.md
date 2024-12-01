@@ -2,11 +2,13 @@
 
 A bot designed to gather all messages and use them to perform various tasks, such as:
 
-**Main Function**
+## Main Function
+
 * Generating a weekly report
 * Creating self-reports
 
-**Additional Function**
+## Additional Function
+
 * Tagging keywords
 * Adding a "Mark as Read" button
 * Sending a notification to the chat when someone joins a voice channel
@@ -23,7 +25,7 @@ The weekly and self-reports will include:
 
 The structure and purpose of each folder in the project.
 
-```
+```bash
 discord_bot/
 ├── asset/
 │   ├── IBMPlexSansTC-Light.ttf      # Font file for generating wordcloud
@@ -46,27 +48,27 @@ discord_bot/
 
 1. Create a `.env` file and add the following:
 
-```
-DISCORD_TOKEN=<Your_DC_Bot_Token>
-```
+    ```bash
+    DISCORD_TOKEN=<Your_DC_Bot_Token>
+    ```
 
 2. Install requirements from `requirement.txt`
 
-You can use Conda (Discord requires a special installation in Conda, so you’ll need to install it separately :D):
+    You can use Conda (Discord requires a special installation in Conda, so you’ll need to install it separately :D):
 
-```
-conda install -r requirement.txt
-conda install conda-forge::discord.py
-```
+    ```bash
+    conda install --file requirements.txt
+    conda install conda-forge::discord.py
+    ```
 
-or use pip:
+    or use pip:
 
-```
-pip install -r requirement.txt
-```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 3. Run `main.py`:
 
-```
-python main.py
-```
+    ```bash
+    python main.py
+    ```
