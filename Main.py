@@ -1,50 +1,35 @@
+# Import
 import os
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
-from modules.message_saver import MessageCatcher
-from modules.message_analyzer import MessageAnlyzer
-from modules.category_fetcher import list_categories
 
-# 載入 TOKEN
+# Load TOKEN
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-# 設定機器人
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix="!", intents=intents)
+# Set Intents
+intents = discord.Intents.default()
+intents.messages = True
 
-# 引入程式
-messageManager = MessageCatcher()
-messageAnlyzer = MessageAnlyzer()
-
-# 當機器人準備完成
-@bot.event
-async def on_ready():
-    print(f'Logged in as {bot.user}')
+bot = commands.Bot(command_prefix=">", intents=intents)
 
 @bot.event
-async def on_message(message):
+async def on_ready() : print(f'Logged in as {bot.user}')
 
-    if message.author == bot.user:
-        return
+@bot.command(name='load_extension')
+async def load_extension(ctx, extension : str):
+    try : bot.load_extension(extension) ; await ctx.send(f"Extension '{extension}' loaded successfully.")
+    except Exception as e : await ctx.send(f"Failed to load extension '{extension}': {e}")
 
-    await messageManager.add_message(message)
-    await bot.process_commands(message)
-    
-# 傳送資料
-@bot.command()
-async def popular_channel(ctx):
-    await messageAnlyzer.popular_channel(ctx)
+@bot.command(name='unload_extension')
+async def unload_extension(ctx, extension : str):
+    try : bot.unload_extension(extension) ; await ctx.send(f"Extension '{extension}' unloaded successfully.")
+    except Exception as e : await ctx.send(f"Failed to unload extension '{extension}': {e}")
 
-# 文字雲
-@bot.command()
-async def draw_word_cloud(ctx):
-    await messageAnlyzer.draw_word_cloud(ctx)
-
-# 抓取類別
-@bot.command()
-async def list_categories(ctx):
-    await list_categories(ctx)
+@bot.command(name='reload_extension')
+async def reload_extension(ctx, extension : str):
+    try : bot.reload_extension(extension) ; await ctx.send(f"Extension '{extension}' reloaded successfully.")
+    except Exception as e : await ctx.send(f"Failed to reload extension '{extension}': {e}")
 
 bot.run(TOKEN)

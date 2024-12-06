@@ -2,13 +2,15 @@ import discord
 import pandas as pd
 from datetime import datetime
 from wordcloud import WordCloud
+from discord.ext import commands
 from database.db import SqliteDataBase
 
-class MessageAnlyzer(SqliteDataBase):
+class CommandExtension(SqliteDataBase, commands.Cog):
 
-    def __init__(self) -> None:
+    def __init__(self, bot) -> None:
 
         super().__init__()
+        self.bot = bot
 
     # 尋找說最多話的頻道
     async def popular_channel(self, ctx, db_path=None) -> None:
@@ -87,3 +89,6 @@ class MessageAnlyzer(SqliteDataBase):
         wordcloud.to_file("asset\\wordcloud.png")
 
         await ctx.send(file=discord.File("asset\\wordcloud.png"))
+
+def setup(bot):
+    bot.add_cog(CommandExtension(bot))
