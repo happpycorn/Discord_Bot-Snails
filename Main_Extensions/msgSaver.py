@@ -88,5 +88,4 @@ class CommandExtension(commands.Cog):
 
         return "Nothing"
 
-def setup(bot):
-    bot.add_cog(CommandExtension(bot))
+def setup(bot) : bot.add_cog(CommandExtension(bot))
