@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from wordcloud import WordCloud
 from discord.ext import commands
-from database.db import SqliteDataBase
+from Main_Extensions.db import SqliteDataBase
 
 class CommandExtension(SqliteDataBase, commands.Cog):
 

@@ -1,9 +1,9 @@
 {
-    "permitted_category_ids": [
+    "allow_category_ids": [
         "1139183046818545794",
         "1160152151167860786"
     ],
-    "permitted_channel_ids": [
+    "allow_channel_ids": [
         
     ]
 }
