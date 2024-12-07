@@ -1,7 +1,4 @@
 from discord.ext import commands
-
-import sys
-sys.path.append("..")
 from Database.db import SqliteDataBase
 
 class CommandExtension(commands.Cog):
