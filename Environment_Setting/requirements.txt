@@ -4,9 +4,8 @@ python-dotenv
 
 # Analyze
 wordcloud
+pandas
 
 # LDA
 tqdm
-sumy
-pandas
 ckip_transformers
