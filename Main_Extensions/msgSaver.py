@@ -1,8 +1,11 @@
 import json
 from discord.ext import commands
-from Main_Extensions.db import SqliteDataBase
 
-class MessageCatcher(commands.Cog):
+import sys
+sys.path.append("..")
+from Database.db import SqliteDataBase
+
+class CommandExtension(commands.Cog):
 
     # Catch Message
     @commands.Cog.listener()
@@ -84,3 +87,6 @@ class MessageCatcher(commands.Cog):
     def getKeywords(self, message : str) -> str:
 
         return "Nothing"
+
+def setup(bot):
+    bot.add_cog(CommandExtension(bot))

@@ -2,11 +2,9 @@ from discord.ext import commands
 
 class CommandExtension(commands.Cog):
 
-    def __init__(self, bot) : self.bot = bot
-
     # Get categories
     @commands.command()
-    async def list_categories(self, ctx):
+    async def listCategories(self, ctx):
 
         # Ensure the command is executed in a server
         if not ctx.guild:
@@ -26,6 +24,7 @@ class CommandExtension(commands.Cog):
         # Send category list
         print(category_list)
         await ctx.send("The data has been sent to the backend.")
+        
+    def __init__(self, bot) : self.bot = bot
 
-def setup(bot):
-    bot.add_cog(CommandExtension(bot))
+def setup(bot) : bot.add_cog(CommandExtension(bot))
