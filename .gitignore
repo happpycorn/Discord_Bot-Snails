@@ -1,5 +1,10 @@
 .env
-asset\wordcloud.png
-database\public_messages.db
-database\member_messages.db
-database\staff_messages.db
+Asset\wordCloud.png
+Database\*.db
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.vscode/
