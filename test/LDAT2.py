@@ -21,7 +21,7 @@ print()
 
 def read_stopword():
 
-    with open("./stopwords_TW.txt", "r", encoding="utf-8") as f:
+    with open(r"Asset\stopWords.txt", "r", encoding="utf-8") as f:
         stopwords = [word.strip("\n") for word in f.readlines()]
     return stopwords
 

@@ -81,6 +81,7 @@ class CommandExtension(commands.Cog):
 
         return False
     
+    # Use LDA
     def getKeywords(self, message : str) -> str:
 
         return "Nothing"

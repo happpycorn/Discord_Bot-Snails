@@ -3,6 +3,7 @@ from Database.db import SqliteDataBase
 
 class CommandExtension(commands.Cog):
 
+    # Init : Bot and Database
     def __init__(self, bot) -> None:
 
         self.bot = bot
