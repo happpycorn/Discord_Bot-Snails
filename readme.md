@@ -12,25 +12,23 @@ A bot designed to gather all messages and use them to perform various tasks, suc
 The structure and purpose of each folder in the project.
 
 ```bash
-discord_bot/
+Discord_Bot-Snails/
 ├── Asset/
-│   ├── stopWords.txt                # Font file for generating wordcloud
-│   └── config.json                  # Generated wordcloud image
+│   ├── stopWords.txt               # List of stop words for LDA analysis
+│   └── config.json                 # Configuration file containing allowed channel and category IDs
 ├── Database/
-│   ├── db.py                        # Database functions
-│   └── Message.db                   # Database file, may include multiple versions
+│   ├── db.py                       # Module with database functions
+│   └── Message.db                  # SQLite database file for storing messages
 ├── Main_Extensions/
-│   ├── msgAnalyzer.py               # Analyzes messages
-│   └── magSaver.py                  # Saves messages
-├── Other_Extensions/
-│   └── *.py                         # The other extensions who have be deloveing
+│   ├── msgAnalyzer.py              # Module for analyzing messages
+│   └── msgSaver.py                 # Module for saving messages
 ├── Environment_Setting/
-│   ├── environment.yml              # Environment for conda
-│   └── requirements.txt             # Environment for pip
-├── .env                             # Environment variables file (create manually; see setup)
-├── .gitignore                       # List of files to ignore in version control
-├── main.py                          # Main program entry point
-└── README.md                        # Project overview
+│   ├── environment.yml             # Conda environment configuration file
+│   └── requirements.txt            # pip environment dependencies file
+├── .env                            # Environment variables file (manually created; see setup instructions)
+├── .gitignore                      # Specifies files and directories to be ignored by Git
+├── main.py                         # Entry point for the Discord bot
+└── README.md                       # Project overview and setup instructions
 ```
 
 ## Setup
@@ -52,18 +50,8 @@ discord_bot/
     or use Conda:
 
     ```bash
-    conda install conda-forge::discord.py
-    conda install conda-forge::python-dotenv
-    conda install conda-forge::wordcloud
-    conda install conda-forge::tqdm
-    conda install conda-forge::sumy
-    conda install conda-forge::pandas
-    ```
-
-    but ckip_transformers still need install by pip:
-
-    ```bash
-    pip install ckip-transformers
+    conda env create -f environment.yml
+    conda activate Snails
     ```
 
 3. Run `main.py`:
