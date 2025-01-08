@@ -4,7 +4,7 @@ import sqlite3
 class SqliteDataBase:
 
     # 初始化資料庫
-    def __init__(self, db_path : str = "Message") -> None:
+    def __init__(self, db_path : str = "Message.db") -> None:
         
         folder_path = "Database"
         self.db_path = os.path.join(folder_path, db_path)

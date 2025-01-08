@@ -10,7 +10,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 # Set Intents
 intents = discord.Intents.default()
-intents.messages = True
+intents.message_content = True
 
 bot = commands.Bot(command_prefix=">", intents=intents)
 
@@ -19,17 +19,17 @@ async def on_ready() : print(f'Logged in as {bot.user}')
 
 @bot.command(name='load_extension')
 async def load_extension(ctx, extension : str):
-    try : bot.load_extension(extension) ; await ctx.send(f"Extension '{extension}' loaded successfully.")
+    try : await bot.load_extension(extension) ; await ctx.send(f"Extension '{extension}' loaded successfully.")
     except Exception as e : await ctx.send(f"Failed to load extension '{extension}': {e}")
 
 @bot.command(name='unload_extension')
 async def unload_extension(ctx, extension : str):
-    try : bot.unload_extension(extension) ; await ctx.send(f"Extension '{extension}' unloaded successfully.")
+    try : await bot.unload_extension(extension) ; await ctx.send(f"Extension '{extension}' unloaded successfully.")
     except Exception as e : await ctx.send(f"Failed to unload extension '{extension}': {e}")
 
 @bot.command(name='reload_extension')
 async def reload_extension(ctx, extension : str):
-    try : bot.reload_extension(extension) ; await ctx.send(f"Extension '{extension}' reloaded successfully.")
+    try : await bot.reload_extension(extension) ; await ctx.send(f"Extension '{extension}' reloaded successfully.")
     except Exception as e : await ctx.send(f"Failed to reload extension '{extension}': {e}")
 
 bot.run(TOKEN)
