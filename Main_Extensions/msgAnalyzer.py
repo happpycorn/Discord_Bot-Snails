@@ -1,5 +1,5 @@
 from discord.ext import commands
-from Database.db import SqliteDataBase
+from Database.msgDB import MsgDB
 
 class MsgAnalyzer(commands.Cog):
 
@@ -7,6 +7,6 @@ class MsgAnalyzer(commands.Cog):
     def __init__(self, bot) -> None:
 
         self.bot = bot
-        self.message_database = SqliteDataBase()
+        self.message_database = MsgDB()
 
 async def setup(bot) : await bot.add_cog(MsgAnalyzer(bot))
