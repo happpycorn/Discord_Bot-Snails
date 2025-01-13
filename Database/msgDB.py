@@ -1,5 +1,7 @@
 import os
 import sqlite3
+import datetime
+import pandas as pd
 
 class MsgDB:
 
@@ -39,13 +41,13 @@ class MsgDB:
     def __init__(self) -> None:
 
         # Creat Table
-        conn, cursor = self.connect_to_db()
+        conn, cursor = self._connect_to_db()
         cursor.execute(self.CREATE_TABLE)
         conn.commit()
         conn.close()
 
     # 連接資料庫
-    def connect_to_db(self) -> tuple:
+    def _connect_to_db(self) -> tuple:
 
         conn = sqlite3.connect(self.DB_PATH)
         conn.row_factory = sqlite3.Row  # 讓結果以字典格式返回 ***
@@ -54,7 +56,7 @@ class MsgDB:
     
     def saveMessage(self, message_data: dict):
         
-        conn, cursor = self.connect_to_db()
+        conn, cursor = self._connect_to_db()
 
         query = f"""
         INSERT INTO {self.TABLE_NAME} (
@@ -79,3 +81,21 @@ class MsgDB:
 
         conn.commit()
         conn.close()
+    
+    def getMessage(self):
+
+        one_week_ago = datetime.datetime.now() - datetime.timedelta(weeks=1)
+        one_week_ago_iso = one_week_ago.isoformat()
+        
+        # 查詢一週內的數據
+        query = f"""
+            SELECT * FROM {self.TABLE_NAME}
+            WHERE timestamp >= ?
+        """
+        
+        # 執行查詢
+        conn, _ = self._connect_to_db()
+        data = pd.read_sql_query(query, conn, params=(one_week_ago_iso,))
+        conn.close()
+        
+        return data
