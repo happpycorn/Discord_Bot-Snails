@@ -1,8 +1,10 @@
 import json
+import time
+import asyncio
 from snownlp import SnowNLP
 from discord.ext import commands
 from Database.msgDB import MsgDB
-from ckip_transformers.nlp import CkipWordSegmenter, CkipPosTagger
+
 
 class MsgSaver(commands.Cog):
 
@@ -34,10 +36,10 @@ class MsgSaver(commands.Cog):
         
         self.stop_words = stop_words
 
-        # Init LDA Model
-        self.ws_driver = CkipWordSegmenter(model="bert-base")
-        self.pos_driver = CkipPosTagger(model="bert-base")
-    
+        # 模型初始化狀態
+        self.ws_driver = bot.ws_driver
+        self.pos_driver = bot.pos_driver
+
     # SaveMessage
     def SaveMessage(self, message) -> None:
 
