@@ -1,4 +1,5 @@
 import json
+from typing import Callable
 from snownlp import SnowNLP
 from discord.ext import commands
 from Database.msgDB import MsgDB
@@ -15,7 +16,10 @@ class MsgSaver(commands.Cog):
             self._saveMessage(message)
 
     # Init : Bot and Database
-    def __init__(self, bot, isAllowGetAllMsg=True) -> None:
+    def __init__(self, bot, isAllowGetAllMsg=True, messageAllowRule: Callable[[any], bool] = None) -> None:
+
+        if messageAllowRule is None: self._isAllowMessage: Callable[[any], bool] = self._defaultMessageAllowRule
+        else: self._isAllowMessage: Callable[[any], bool] = messageAllowRule
 
         self.bot = bot
         self.isAllowGetAllMsg = isAllowGetAllMsg
@@ -58,7 +62,7 @@ class MsgSaver(commands.Cog):
         self.msgDB.saveMessage(message_data)
     
     # Check if Message is from an Allowed Channel or Category
-    def _isAllowMessage(self, m) -> bool:
+    def _defaultMessageAllowRule(self, m) -> bool:
 
         is_in_channel = m.id in self.allow_channel_ids
         is_in_category = m.category and m.category.id in self.allow_category_ids
