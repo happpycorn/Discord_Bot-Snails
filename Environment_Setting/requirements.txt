@@ -9,3 +9,4 @@ pandas
 # LDA
 tqdm
 ckip_transformers
+SnowNLP
