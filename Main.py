@@ -24,27 +24,42 @@ def main():
     intents = discord.Intents.default()
     intents.message_content = True
     bot = commands.Bot(command_prefix=">", intents=intents)
+    tree = bot.tree  # Slash 指令使用 `tree`
 
     bot.ws_driver = ws_driver
     bot.pos_driver = pos_driver
 
     @bot.event
-    async def on_ready() : print(f'Logged in as {bot.user}')
+    async def on_ready():
+        await tree.sync()  # **同步 Slash 指令**
+        print(f'Logged in as {bot.user}')
 
-    @bot.command(name='load_extension')
-    async def load_extension(ctx, extension : str):
-        try : await bot.load_extension(extension) ; await ctx.send(f"Extension '{extension}' loaded successfully.")
-        except Exception as e : await ctx.send(f"Failed to load extension '{extension}': {e}")
+    # 傳統指令：載入擴充功能
+    @bot.command(name="load_ext", help="載入或重新載入擴充功能")
+    async def load_ext(ctx, extension: str):
+        try:
+            if extension in bot.extensions:
+                await bot.reload_extension(extension)
+                action = "重新載入"
+            else:
+                await bot.load_extension(extension)
+                action = "載入"
 
-    @bot.command(name='unload_extension')
-    async def unload_extension(ctx, extension : str):
-        try : await bot.unload_extension(extension) ; await ctx.send(f"Extension '{extension}' unloaded successfully.")
-        except Exception as e : await ctx.send(f"Failed to unload extension '{extension}': {e}")
+            await ctx.send(f"擴充功能 '{extension}' {action}開始！")
+            await tree.sync()
+            await ctx.send(f"擴充功能 '{extension}' {action}成功！")
+        except Exception as e:
+            await ctx.send(f"處理擴充功能 '{extension}' 時發生錯誤：{e}")
 
-    @bot.command(name='reload_extension')
-    async def reload_extension(ctx, extension : str):
-        try : await bot.reload_extension(extension) ; await ctx.send(f"Extension '{extension}' reloaded successfully.")
-        except Exception as e : await ctx.send(f"Failed to reload extension '{extension}': {e}")
+    # 傳統指令：卸載擴充功能
+    @bot.command(name="unload_ext", help="卸載擴充功能")
+    async def unload_ext(ctx, extension: str):
+        """卸載指定的擴充功能"""
+        try:
+            await bot.unload_extension(extension)
+            await ctx.send(f"擴充功能 '{extension}' 卸載成功！")
+        except Exception as e:
+            await ctx.send(f"卸載擴充功能 '{extension}' 時發生錯誤：{e}")
 
     # 啟動 Bot
     bot.run(TOKEN)
