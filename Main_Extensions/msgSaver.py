@@ -47,16 +47,16 @@ class MsgSaver(commands.Cog):
         print(f"Received message: {message.content} from {message.author}")
 
         message_data = {
-            self.msgDB.COLUMN_ID: str(message.id),
-            self.msgDB.COLUMN_AUTHOR: str(message.author),
-            self.msgDB.COLUMN_CONTENT: str(message.content),
-            self.msgDB.COLUMN_CHANNEL: str(message.channel),
-            self.msgDB.COLUMN_CATEGORY: str(getattr(message.channel.category, 'id', None)),
-            self.msgDB.COLUMN_TIMESTAMP: message.created_at.isoformat(),
-            self.msgDB.COLUMN_MESSAGE_TYPE: str(message.type),
-            self.msgDB.COLUMN_PARENT_MESSAGE_ID: str(getattr(message.reference, 'message_id', None)),
-            self.msgDB.COLUMN_KEYWORDS: self._getKeywords(message),
-            self.msgDB.COLUMN_SENTIMENT_SCORE: self._getScore(message)
+            self.msgDB.C_ID: str(message.id),
+            self.msgDB.C_AUTHOR: str(message.author),
+            self.msgDB.C_CONTENT: str(message.content),
+            self.msgDB.C_CHANNEL: str(message.channel),
+            self.msgDB.C_CATEGORY: str(getattr(message.channel.category, 'id', None)),
+            self.msgDB.C_TIMESTAMP: message.created_at.isoformat(),
+            self.msgDB.C_MESSAGE_TYPE: str(message.type),
+            self.msgDB.C_PARENT_MESSAGE_ID: str(getattr(message.reference, 'message_id', None)),
+            self.msgDB.C_KEYWORDS: self._getKeywords(message),
+            self.msgDB.C_SENTIMENT_SCORE: self._getScore(message)
         }
 
         self.msgDB.saveMessage(message_data)
