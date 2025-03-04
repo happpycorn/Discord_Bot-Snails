@@ -5,6 +5,7 @@ from ollama import generate
 from discord.ext import commands
 from Database.msgDB import MsgDB
 from datetime import datetime, timedelta
+import textwrap
 
 import functools
 import typing
@@ -103,14 +104,14 @@ class MsgAnalyzer(commands.Cog):
         start_time = time.time()
         channel, summary = await self._summarizeChannel(channel)
         elapsed_time = time.time() - start_time
-        text = f"""
-對話頻道：{channel}
----
-訊息摘要：
-{summary}
----
-總結時間: {elapsed_time:.2f} 秒
-        """
+        text = textwrap.dedent(f"""
+            對話頻道：{channel}
+            ---
+            訊息摘要：
+            {summary}
+            ---
+            總結時間: {elapsed_time:.2f} 秒
+        """)
         await interaction.followup.send(content=text, ephemeral=True)
 
     @discord.app_commands.command(name="select_and_summarize_channel", description="選擇頻道並進行總結")
