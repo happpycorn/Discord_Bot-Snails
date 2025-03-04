@@ -104,14 +104,14 @@ class MsgAnalyzer(commands.Cog):
         channel, summary = await self._summarizeChannel(channel)
         elapsed_time = time.time() - start_time
         text = f"""
-            對話頻道：{channel}
-            ---
-            訊息摘要：
-            {summary}
-            ---
-            總結時間: {elapsed_time:.2f} 秒
+對話頻道：{channel}
+---
+訊息摘要：
+{summary}
+---
+總結時間: {elapsed_time:.2f} 秒
         """
-        await interaction.response.send_message(text=text, ephemeral=True)
+        await interaction.followup.send(content=text, ephemeral=True)
 
     @discord.app_commands.command(name="select_and_summarize_channel", description="選擇頻道並進行總結")
     async def select_and_summarize_channel(self, interaction: discord.Interaction):

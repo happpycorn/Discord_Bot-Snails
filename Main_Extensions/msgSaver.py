@@ -71,8 +71,9 @@ class MsgSaver(commands.Cog):
     
     # Use LDA
     def _getKeywords(self, message) -> str:
-        
+
         text = str(message.content)
+        if len(text) == 0: return None
 
         word_splits = self.ws_driver([text])[0]
         pos_tags = self.pos_driver([word_splits])[0]
@@ -87,6 +88,7 @@ class MsgSaver(commands.Cog):
     def _getScore(self, message) -> float:
 
         text = str(message.content).strip()  # 確保為字符串並去掉多餘空格
+        if len(text) == 0: return None
 
         if not text: return 0.5
 
