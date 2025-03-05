@@ -87,6 +87,23 @@ def main():
     async def owner_only_error(interaction: discord.Interaction, error):
         if isinstance(error, app_commands.CheckFailure):
             await interaction.response.send_message("🚫 你沒有權限使用這個指令！", ephemeral=True)
+    
+    @tree.command(name="list_ext", description="檢視目前載入的擴充功能（僅管理員可用）")
+    @is_owner()
+    async def list_ext(interaction: discord.Interaction):
+        # 檢視目前載入的擴充功能
+        extensions = list(bot.extensions.keys())
+        
+        if extensions:
+            extensions_list = "\n".join(extensions)
+            await interaction.response.send_message(f"目前載入的擴充功能：\n{extensions_list}")
+        else:
+            await interaction.response.send_message("目前沒有載入任何擴充功能。")
+
+    @unload_ext.error
+    async def owner_only_error(interaction: discord.Interaction, error):
+        if isinstance(error, app_commands.CheckFailure):
+            await interaction.response.send_message("🚫 你沒有權限使用這個指令！", ephemeral=True)
 
     # 啟動 Bot
     bot.run(TOKEN)
