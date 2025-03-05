@@ -47,7 +47,7 @@ def main():
         print(f'Logged in as {bot.user}')
 
     # 載入擴充功能
-    @tree.command(name="load_ext", description="載入或重新載入擴充功能")
+    @tree.command(name="load_ext", description="載入或重新載入擴充功能", default_permission=False)
     @is_owner()
     async def load_ext(interaction: discord.Interaction, extension: str):
         """載入指定的擴充功能"""
@@ -72,7 +72,7 @@ def main():
             await interaction.response.send_message("🚫 你沒有權限使用這個指令！", ephemeral=True)
 
     # 卸載擴充功能
-    @tree.command(name="unload_ext", description="卸載擴充功能")
+    @tree.command(name="unload_ext", description="卸載擴充功能", default_permission=False)
     @is_owner()
     async def unload_ext(interaction: discord.Interaction, extension: str):
         """卸載指定的擴充功能"""
