@@ -42,13 +42,19 @@ class MsgAnalyzer(commands.Cog):
         self.bot = bot
         self.message_database = MsgDB()
     
-    def _getChannels(self):
+    def _getChannels(self, allowed_categories=["1335259735380983930"]):
         """列出最近一週內有新訊息的頻道"""
-        one_week_ago = datetime.now() - timedelta(days=7)
+        one_week_ago = datetime.now() - timedelta(days=100)
+
+        placeholders = ",".join("?" * len(allowed_categories))
 
         result = self.message_database.getData(
-            f"SELECT DISTINCT {self.message_database.C_CHANNEL} FROM Messages WHERE timestamp >= ?;", 
-            (one_week_ago.timestamp(),)
+            f"""
+                SELECT DISTINCT {self.message_database.C_CHANNEL}
+                FROM {self.message_database.TABLE_NAME}
+                WHERE {self.message_database.C_TIMESTAMP} >= ? AND  {self.message_database.C_CATEGORY} IN ({placeholders});
+            """, 
+            (one_week_ago.timestamp(), *allowed_categories)
         )
 
         return[row[0] for row in result]
