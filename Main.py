@@ -96,9 +96,9 @@ def main():
         
         if extensions:
             extensions_list = "\n".join(extensions)
-            await interaction.response.send_message(f"目前載入的擴充功能：\n{extensions_list}")
+            await interaction.response.send_message(f"目前載入的擴充功能：\n{extensions_list}", ephemeral=True)
         else:
-            await interaction.response.send_message("目前沒有載入任何擴充功能。")
+            await interaction.response.send_message("目前沒有載入任何擴充功能。", ephemeral=True)
 
     @unload_ext.error
     async def owner_only_error(interaction: discord.Interaction, error):
