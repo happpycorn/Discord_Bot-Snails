@@ -4,7 +4,7 @@ import discord
 from ollama import generate
 from discord.ext import commands, tasks
 from Database.msgDB import MsgDB
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import textwrap
 
 import functools
@@ -41,6 +41,17 @@ class MsgAnalyzer(commands.Cog):
 
         self.bot = bot
         self.message_database = MsgDB()
+    
+    @tasks.loop(time=time(hour=11, minute=40, second=0))  # 設定每天 7:00
+    async def send_scheduled_message(self):
+        channel = self.bot.get_channel(1286549443071447112)
+        if channel:
+            await channel.send("早安！這是每天早上 7 點的自動訊息 🌅")
+    
+    @commands.Cog.listener()
+    async def on_ready(self):
+        if not self.send_scheduled_message.is_running():
+            self.send_scheduled_message.start()
     
     def _getChannels(self, allowed_categories=["1335259735380983930"]):
         """列出最近一週內有新訊息的頻道"""
@@ -130,11 +141,5 @@ class MsgAnalyzer(commands.Cog):
         # 假設你有一個 ChannelSelectView 類別
         view = ChannelSelectView(channels, self.callback_function)
         await interaction.response.send_message("請選擇你要總結的頻道：", view=view, ephemeral=True)
-    
-    @tasks.loop(time=datetime.time(hour=11, minute=15, second=0))  # 設定每天 7:00
-    async def send_scheduled_message(self):
-        channel = self.bot.get_channel(self.channel_id)
-        if channel:
-            await channel.send("早安！這是每天早上 7 點的自動訊息 🌅")
 
 async def setup(bot) : await bot.add_cog(MsgAnalyzer(bot))
