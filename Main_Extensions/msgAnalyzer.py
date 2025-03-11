@@ -57,7 +57,7 @@ class MsgAnalyzer(commands.Cog):
             (one_week_ago.isoformat(), *allowed_categories)
         )
 
-        return[row[0] for row in result]
+        return [row[0] for row in result]
     
     def _getChannelMessagesText(self, channel_name):
         """擷取特定頻道最近一週的所有訊息，並限制最大字數，包含時間戳和作者"""
