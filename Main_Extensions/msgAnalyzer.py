@@ -41,7 +41,7 @@ class MsgAnalyzer(commands.Cog):
         self.bot = bot
         self.message_database = MsgDB()
     
-    @tasks.loop(time=time(hour=3, minute=50, second=0))  # 設定每天 7:00
+    @tasks.loop(time=time(hour=3, minute=52, second=0))  # 設定每天 7:00
     async def send_scheduled_message(self):
         channel = self.bot.get_channel(1286549443071447112)
         if channel:
