@@ -41,7 +41,7 @@ class MsgAnalyzer(commands.Cog):
         self.bot = bot
         self.message_database = MsgDB()
     
-    @tasks.loop(time=time(hour=4, minute=00, second=0))  # 設定每天 7:00
+    @tasks.loop(time=time(hour=4, minute=1, second=0))  # 設定每天 7:00
     async def send_scheduled_message(self):
         channel = self.bot.get_channel(1286549443071447112)
         if channel:
@@ -141,5 +141,8 @@ class MsgAnalyzer(commands.Cog):
         # 假設你有一個 ChannelSelectView 類別
         view = ChannelSelectView(channels, self.callback_function)
         await interaction.response.send_message("請選擇你要總結的頻道：", view=view, ephemeral=True)
+    
+    @discord.app_commands.command(name="test", description="測試訊息")
+    
 
 async def setup(bot) : await bot.add_cog(MsgAnalyzer(bot))
