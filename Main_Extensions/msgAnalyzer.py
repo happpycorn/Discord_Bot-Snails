@@ -137,6 +137,6 @@ class MsgAnalyzer(commands.Cog):
     
     @discord.app_commands.command(name="test_msg", description="測試訊息")
     async def test_msg(self, interaction: discord.Interaction):
-        interaction.response.send_message("這是測試訊息。", self.send_scheduled_message.is_running())
+        interaction.response.send_message(f"這是測試訊息。{self.send_scheduled_message.is_running()}")
 
 async def setup(bot) : await bot.add_cog(MsgAnalyzer(bot))
