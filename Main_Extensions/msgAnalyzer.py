@@ -49,8 +49,9 @@ class MsgAnalyzer(commands.Cog):
     
     @commands.Cog.listener()
     async def on_ready(self):
-        if not self.send_scheduled_message.is_running():
-            self.send_scheduled_message.start()
+        if self.send_scheduled_message.is_running():
+            self.send_scheduled_message.cancel()
+        self.send_scheduled_message.start()
     
     def _getChannels(self, allowed_categories=["1335259735380983930"]):
         """列出最近一週內有新訊息的頻道"""
