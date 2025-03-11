@@ -1,5 +1,4 @@
 import re
-import time
 import discord
 from ollama import generate
 from discord.ext import commands, tasks
@@ -118,9 +117,9 @@ class MsgAnalyzer(commands.Cog):
     
     async def callback_function(self, channel, interaction):
         await interaction.response.send_message(f"你選擇的頻道是：{channel}，請稍等 5~10 分鐘進行總結", ephemeral=True)
-        start_time = time.time()
+        start_time = datetime.now()
         channel, summary = await self._summarizeChannel(channel)
-        elapsed_time = time.time() - start_time
+        elapsed_time = datetime.now() - start_time
         text = textwrap.dedent(f"""
             對話頻道：{channel}
             ---
