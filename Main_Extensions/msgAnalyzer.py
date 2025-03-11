@@ -126,7 +126,7 @@ class MsgAnalyzer(commands.Cog):
             訊息摘要：
             {summary}
             ---
-            總結時間: {elapsed_time:.2f} 秒
+            總結時間: {elapsed_time.total_seconds():.2f} 秒
         """)
         await interaction.followup.send(content=text)
 
