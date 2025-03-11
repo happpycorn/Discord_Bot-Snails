@@ -2,7 +2,7 @@ import re
 import time
 import discord
 from ollama import generate
-from discord.ext import commands
+from discord.ext import commands, tasks
 from Database.msgDB import MsgDB
 from datetime import datetime, timedelta
 import textwrap
@@ -44,7 +44,7 @@ class MsgAnalyzer(commands.Cog):
     
     def _getChannels(self, allowed_categories=["1335259735380983930"]):
         """列出最近一週內有新訊息的頻道"""
-        one_week_ago = datetime.now() - timedelta(days=100)
+        one_week_ago = datetime.now() - timedelta(days=7)
 
         placeholders = ",".join("?" * len(allowed_categories))
 
@@ -54,7 +54,7 @@ class MsgAnalyzer(commands.Cog):
                 FROM {self.message_database.TABLE_NAME}
                 WHERE {self.message_database.C_TIMESTAMP} >= ? AND  {self.message_database.C_CATEGORY} IN ({placeholders});
             """, 
-            (one_week_ago.timestamp(), *allowed_categories)
+            (one_week_ago.isoformat(), *allowed_categories)
         )
 
         return[row[0] for row in result]
@@ -71,7 +71,7 @@ class MsgAnalyzer(commands.Cog):
             AND timestamp >= ? 
             ORDER BY timestamp ASC;
             """,
-            (channel_name, one_week_ago.timestamp())
+            (channel_name, one_week_ago.isoformat())
         )
 
         # 格式化訊息，包括時間戳和作者
@@ -118,7 +118,7 @@ class MsgAnalyzer(commands.Cog):
             ---
             總結時間: {elapsed_time:.2f} 秒
         """)
-        await interaction.followup.send(content=text, ephemeral=True)
+        await interaction.followup.send(content=text)
 
     @discord.app_commands.command(name="select_and_summarize_channel", description="選擇頻道並進行總結")
     async def select_and_summarize_channel(self, interaction: discord.Interaction):
@@ -130,5 +130,11 @@ class MsgAnalyzer(commands.Cog):
         # 假設你有一個 ChannelSelectView 類別
         view = ChannelSelectView(channels, self.callback_function)
         await interaction.response.send_message("請選擇你要總結的頻道：", view=view, ephemeral=True)
+    
+    @tasks.loop(time=datetime.time(hour=11, minute=15, second=0))  # 設定每天 7:00
+    async def send_scheduled_message(self):
+        channel = self.bot.get_channel(self.channel_id)
+        if channel:
+            await channel.send("早安！這是每天早上 7 點的自動訊息 🌅")
 
 async def setup(bot) : await bot.add_cog(MsgAnalyzer(bot))
