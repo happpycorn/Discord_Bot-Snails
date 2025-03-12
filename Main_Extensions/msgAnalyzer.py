@@ -5,6 +5,7 @@ from discord.ext import commands, tasks
 from Database.msgDB import MsgDB
 from datetime import datetime, timedelta, time
 import textwrap
+import concurrent.futures
 
 import functools
 import typing
@@ -40,18 +41,8 @@ class MsgAnalyzer(commands.Cog):
 
         self.bot = bot
         self.message_database = MsgDB()
-    
-    @tasks.loop(time=time(hour=4, minute=1, second=0))  # 設定每天 7:00
-    async def send_scheduled_message(self):
-        channel = self.bot.get_channel(1286549443071447112)
-        if channel:
-            await channel.send("早安！這是每天早上 7 點的自動訊息 🌅")
-    
-    @commands.Cog.listener()
-    async def on_ready(self):
-        if self.send_scheduled_message.is_running():
-            self.send_scheduled_message.cancel()
-        self.send_scheduled_message.start()
+        if not self.send_scheduled_message.is_running():  # 確保定時任務不會重複啟動
+            self.send_scheduled_message.start()
     
     def _getChannels(self, allowed_categories=["1335259735380983930"]):
         """列出最近一週內有新訊息的頻道"""
@@ -121,7 +112,13 @@ class MsgAnalyzer(commands.Cog):
         start_time = datetime.now()
         channel, summary = await self._summarizeChannel(channel)
         elapsed_time = datetime.now() - start_time
-        text = textwrap.dedent(f"對話頻道：{channel}\n---\n訊息摘要：\n{summary}\n---\n總結時間: {elapsed_time.total_seconds():.2f} 秒")
+        content = []
+        content.append(f"對話頻道：{channel}")
+        content.append(f"---")
+        content.append(f"訊息摘要：\n{summary}")
+        content.append(f"---")
+        content.append(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")
+        text = textwrap.dedent("\n".join(content))
         await interaction.followup.send(content=text)
 
     @discord.app_commands.command(name="select_and_summarize_channel", description="選擇頻道並進行總結")
@@ -134,9 +131,45 @@ class MsgAnalyzer(commands.Cog):
         # 假設你有一個 ChannelSelectView 類別
         view = ChannelSelectView(channels, self.callback_function)
         await interaction.response.send_message("請選擇你要總結的頻道：", view=view, ephemeral=True)
-    
+
+    @tasks.loop(time=time(hour=1, minute=8, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
+    async def send_scheduled_message(self):
+        channel = self.bot.get_channel(1286549443071447112)
+        if not channel: return
+
+        start_time = datetime.now()
+
+        channels = self._getChannels()
+        print("資料庫中的頻道：", channels)
+
+        # 限制執行緒數，避免過度並行
+        max_threads = min(12, len(channels))
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
+            results = executor.map(self._summarizeChannel, channels)
+
+        elapsed_time = datetime.now() - start_time
+
+        content = []
+
+        # 輸出結果
+        for channel, summary in results:
+            content.append(f"對話頻道：{channel}")
+            content.append(f"---")
+            content.append(f"訊息摘要：\n{summary}")
+            content.append(f"---")
+
+        content.append(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")
+        
+        await channel.send("\n".join(content))
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        if not self.send_scheduled_message.is_running():  # 確保不會重複啟動
+            self.send_scheduled_message.start()
+
     @discord.app_commands.command(name="test_msg", description="測試訊息")
     async def test_msg(self, interaction: discord.Interaction):
-        interaction.response.send_message(f"這是測試訊息。{self.send_scheduled_message.is_running()}")
+        await interaction.response.send_message(f"這是測試訊息。定時任務執行狀態: {self.send_scheduled_message.is_running()}")
 
 async def setup(bot) : await bot.add_cog(MsgAnalyzer(bot))
