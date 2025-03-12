@@ -132,8 +132,9 @@ class MsgAnalyzer(commands.Cog):
         view = ChannelSelectView(channels, self.callback_function)
         await interaction.response.send_message("請選擇你要總結的頻道：", view=view, ephemeral=True)
 
-    @tasks.loop(time=time(hour=1, minute=8, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
+    @tasks.loop(time=time(hour=1, minute=56, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
     async def send_scheduled_message(self):
+        print("start")
         channel = self.bot.get_channel(1286549443071447112)
         if not channel: return
 
@@ -146,7 +147,7 @@ class MsgAnalyzer(commands.Cog):
         max_threads = min(12, len(channels))
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
-            results = executor.map(self._summarizeChannel, channels)
+            results = await asyncio.gather(*(self._summarizeChannel(channel) for channel in channels))
 
         elapsed_time = datetime.now() - start_time
 

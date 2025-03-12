@@ -1,5 +1,5 @@
 import discord
-from datetime import time
+from datetime import time, datetime
 from discord.ext import commands, tasks
 
 class Noter(commands.Cog):
@@ -9,7 +9,7 @@ class Noter(commands.Cog):
         if not self.send_scheduled_message.is_running():  # 確保定時任務不會重複啟動
             self.send_scheduled_message.start()
 
-    @tasks.loop(time=time(hour=0, minute=52, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
+    @tasks.loop(time=time(hour=1, minute=47, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
     async def send_scheduled_message(self):
         channel = self.bot.get_channel(1286549443071447112)
         if channel:
@@ -20,8 +20,8 @@ class Noter(commands.Cog):
         if not self.send_scheduled_message.is_running():  # 確保不會重複啟動
             self.send_scheduled_message.start()
 
-    @discord.app_commands.command(name="test_msg", description="測試訊息")
-    async def test_msg(self, interaction: discord.Interaction):
-        await interaction.response.send_message(f"這是測試訊息。定時任務執行狀態: {self.send_scheduled_message.is_running()}")
+    @discord.app_commands.command(name="noter_msg", description="測試訊息")
+    async def noter_msg(self, interaction: discord.Interaction):
+        await interaction.response.send_message(f"這是測試訊息。定時任務執行狀態: {self.send_scheduled_message.is_running()}, 時間 {datetime.now()}")
 
 async def setup(bot): await bot.add_cog(Noter(bot))
