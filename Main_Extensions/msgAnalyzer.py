@@ -134,7 +134,7 @@ class MsgAnalyzer(commands.Cog):
     @tasks.loop(time=time(hour=23, minute=0, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
     async def send_scheduled_message(self):
         print("start")
-        send_channel = self.bot.get_channel(1286549443071447112)
+        send_channel = self.bot.get_channel(1349594509738115072)
         if not send_channel: return
 
         start_time = datetime.now()
