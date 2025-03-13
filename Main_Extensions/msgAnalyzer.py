@@ -5,7 +5,6 @@ from discord.ext import commands, tasks
 from Database.msgDB import MsgDB
 from datetime import datetime, timedelta, time
 import textwrap
-import concurrent.futures
 
 import functools
 import typing
@@ -132,37 +131,31 @@ class MsgAnalyzer(commands.Cog):
         view = ChannelSelectView(channels, self.callback_function)
         await interaction.response.send_message("請選擇你要總結的頻道：", view=view, ephemeral=True)
 
-    @tasks.loop(time=time(hour=1, minute=56, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
+    @tasks.loop(time=time(hour=23, minute=0, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
     async def send_scheduled_message(self):
         print("start")
-        channel = self.bot.get_channel(1286549443071447112)
-        if not channel: return
+        send_channel = self.bot.get_channel(1286549443071447112)
+        if not send_channel: return
 
         start_time = datetime.now()
 
         channels = self._getChannels()
         print("資料庫中的頻道：", channels)
 
-        # 限制執行緒數，避免過度並行
-        max_threads = min(12, len(channels))
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
-            results = await asyncio.gather(*(self._summarizeChannel(channel) for channel in channels))
+        results = await asyncio.gather(*(self._summarizeChannel(channel) for channel in channels))
 
         elapsed_time = datetime.now() - start_time
 
-        content = []
-
         # 輸出結果
         for channel, summary in results:
+            content = []
             content.append(f"對話頻道：{channel}")
             content.append(f"---")
             content.append(f"訊息摘要：\n{summary}")
             content.append(f"---")
+            await send_channel.send("\n".join(content))
 
-        content.append(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")
-        
-        await channel.send("\n".join(content))
+        await send_channel.send(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")
 
     @commands.Cog.listener()
     async def on_ready(self):
