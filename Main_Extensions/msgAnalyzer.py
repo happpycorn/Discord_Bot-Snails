@@ -157,10 +157,10 @@ class MsgAnalyzer(commands.Cog):
         view = ChannelSelectView(channels, self.callback_function)
         await interaction.response.send_message("請選擇你要總結的頻道：", view=view, ephemeral=True)
 
-    @tasks.loop(time=time(hour=3, minute=27, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
+    @tasks.loop(time=time(hour=23, minute=0, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
     async def send_scheduled_message(self):
 
-        if datetime.now(timezone.utc).weekday() != 0: return # 星期五是 `4`，不是的話就跳過
+        if datetime.now(timezone.utc).weekday() != 4: return # 星期五是 `4`，不是的話就跳過
         
         print("start")
         send_channel = self.bot.get_channel(self.send_channel)
