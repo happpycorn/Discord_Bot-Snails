@@ -1,6 +1,7 @@
 import json
 from discord.ext import commands
 from Database.msgDB import MsgDB
+import datetime
 
 class MsgSaver(commands.Cog):
 
@@ -49,5 +50,26 @@ class MsgSaver(commands.Cog):
         is_in_category = m.category and m.category.id in self.allow_category_ids
 
         return is_in_channel or is_in_category
+
+    
+    @commands.command(name='fetch_messages')
+    async def fetch_messages(self, ctx, days: int = 7):
+        """抓取過去指定天數的訊息並存入資料庫"""
+        # 取得頻道物件
+        channel = ctx.channel
+        if not channel:
+            await ctx.send(f"頻道 {channel.name} 不存在。")
+            return
+        
+        # 計算抓取訊息的起始時間 (過去多少天)
+        since_date = datetime.datetime.now() - datetime.timedelta(days=days)
+
+        # 抓取過去的訊息
+        async for message in channel.history(after=since_date):
+            if not await self.msgDB.message_exists(message.id):
+                # 如果訊息不在資料庫中，則存入資料庫
+                await self._saveMessage(message)
+
+        await ctx.send(f"已成功抓取並儲存過去 {days} 天的訊息。")
 
 async def setup(bot) : await bot.add_cog(MsgSaver(bot))

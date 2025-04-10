@@ -75,3 +75,9 @@ class MsgDB:
             cursor = conn.cursor()
             cursor.execute(arg_text, arg_vars)
             return cursor.fetchall()
+    
+    async def message_exists(self, message_id: int) -> bool:
+        """檢查訊息是否已經在資料庫中"""
+        query = f"SELECT COUNT(*) FROM {self.TABLE_NAME} WHERE id = {message_id}"
+        result = self.msgDB.execute_query(query)
+        return result[0][0] > 0
