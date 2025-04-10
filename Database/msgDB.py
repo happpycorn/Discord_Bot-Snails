@@ -24,7 +24,7 @@ class MsgDB:
         {C_CONTENT} TEXT,
         {C_CHANNEL} TEXT,
         {C_CATEGORY} TEXT,
-        {C_TIMESTAMP} TEXT,
+        {C_TIMESTAMP} TEXT
     )
     """
 

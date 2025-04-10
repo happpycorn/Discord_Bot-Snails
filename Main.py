@@ -1,10 +1,9 @@
 # Import
-import os
 import json
 import discord
-from dotenv import load_dotenv
 from discord import app_commands
 from discord.ext import commands
+import traceback
 
 def main():
     # Load config
@@ -13,9 +12,6 @@ def main():
     TOKEN = config['discord_token']
     ADMIN_ID = config['admin_id']
 
-    load_dotenv()
-    TOKEN = os.getenv("DISCORD_TOKEN")
-    ADMIN_ID = int(os.getenv("ADMIN_ID"))
     EXT_LIST = [
         "Main_Extensions.msgSaver",
         "Main_Extensions.msgAnalyzer"
@@ -39,7 +35,10 @@ def main():
             try:
                 await bot.load_extension(ext)
                 print(f"✅ Extension {ext} load success")
-            except Exception as e: print(f"❌ Load extension {ext} fail: {e}")
+            except Exception as e: 
+                print(f"❌ Load extension {ext} fail: {e}")
+                print("Detailed error trace:")
+                traceback.print_exc()
         await tree.sync()
         print(f'🤖 Logged in as {bot.user}')
 
