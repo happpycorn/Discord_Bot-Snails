@@ -1,12 +1,18 @@
 # Import
 import os
+import json
 import discord
 from dotenv import load_dotenv
 from discord import app_commands
 from discord.ext import commands
 
 def main():
-    # Load TOKEN
+    # Load config
+    with open('config.json') as f:
+        config = json.load(f)
+    TOKEN = config['discord_token']
+    ADMIN_ID = config['admin_id']
+
     load_dotenv()
     TOKEN = os.getenv("DISCORD_TOKEN")
     ADMIN_ID = int(os.getenv("ADMIN_ID"))
