@@ -1,116 +1,95 @@
 # Import
-import os
+import json
 import discord
-from dotenv import load_dotenv
 from discord import app_commands
 from discord.ext import commands
-from ckip_transformers.nlp import CkipWordSegmenter, CkipPosTagger
-
-# 定義模型
-ws_driver = None
-pos_driver = None
-
-def initialize_models():
-    global ws_driver, pos_driver
-    ws_driver = CkipWordSegmenter(model="bert-base")
-    pos_driver = CkipPosTagger(model="bert-base")
-    print("Models initialized successfully.")
+import traceback
 
 def main():
-    # Load TOKEN
-    load_dotenv()
-    TOKEN = os.getenv("DISCORD_TOKEN")
-    OWNER_ID = int(os.getenv("OWNER_ID"))
+    # Load config
+    with open('config.json') as f: config = json.load(f)
+    TOKEN = config['discord_token']
+    ADMIN_ID = config['admin_id']
+
     EXT_LIST = [
         "Main_Extensions.msgSaver",
         "Main_Extensions.msgAnalyzer"
     ]
 
-    # 初始化 Discord Bot
+    # Init Discord Bot
     intents = discord.Intents.default()
     intents.message_content = True
-    bot = commands.Bot(command_prefix=">", intents=intents)
-    tree = bot.tree  # Slash 指令使用 `tree`
+    bot = commands.Bot(command_prefix=None, intents=intents)
+    tree = bot.tree
 
-    bot.ws_driver = ws_driver
-    bot.pos_driver = pos_driver
+    # Permissions check decoration
+    async def is_admin(interaction: discord.Interaction):
+        return interaction.user.id == ADMIN_ID
+    admin_only = app_commands.check(is_admin)
 
-    def is_owner():
-        async def predicate(interaction: discord.Interaction):
-            return interaction.user.id == OWNER_ID
-        return app_commands.check(predicate)
-
+    # On ready function
     @bot.event
     async def on_ready():
-        for ext in EXT_LIST: await bot.load_extension(ext)
-        await tree.sync()  # **同步 Slash 指令**
-        print(f'Logged in as {bot.user}')
+        for ext in EXT_LIST:
+            try:
+                await bot.load_extension(ext)
+                print(f"✅ Extension {ext} load success")
+            except Exception as e: 
+                print(f"❌ Load extension {ext} fail: {e}")
+                print("Detailed error trace:")
+                traceback.print_exc()
+        await tree.sync()
+        print(f'🤖 Logged in as {bot.user}')
 
-    # 載入擴充功能
-    @tree.command(name="load_ext", description="載入或重新載入擴充功能（僅管理員可用）")
-    @is_owner()
+    # Load extension function
+    @tree.command(name="load_ext", description="↘️ Load or Reload extension (admin only)")
+    @admin_only
     async def load_ext(interaction: discord.Interaction, extension: str):
-        """載入指定的擴充功能"""
         send = interaction.response.send_message
         try:
             if extension in bot.extensions:
                 await bot.reload_extension(extension)
-                action = "重新載入"
+                action = "Reload"
             else:
                 await bot.load_extension(extension)
-                action = "載入"
+                action = "Load"
 
-            await send(f"擴充功能 '{extension}' {action}開始！", ephemeral=True)
             await tree.sync()
-            await send(f"擴充功能 '{extension}' {action}成功！", ephemeral=True)
+            await send(f"✅ {action} extension '{extension}' success!", ephemeral=True)
         except Exception as e:
-            await send(f"處理擴充功能 '{extension}' 時發生錯誤：{e}", ephemeral=True)
+            await send(f"❌ {action} extension '{extension}' failed. Error: {e}", ephemeral=True)
 
-    @load_ext.error
-    async def owner_only_error(interaction: discord.Interaction, error):
-        if isinstance(error, app_commands.CheckFailure):
-            await interaction.response.send_message("🚫 你沒有權限使用這個指令！", ephemeral=True)
-
-    # 卸載擴充功能
-    @tree.command(name="unload_ext", description="卸載擴充功能（僅管理員可用）")
-    @is_owner()
+    # Unload extension function
+    @tree.command(name="unload_ext", description="↖️ Unload extension (admin only)")
+    @admin_only
     async def unload_ext(interaction: discord.Interaction, extension: str):
-        """卸載指定的擴充功能"""
         send = interaction.response.send_message
         try:
             await bot.unload_extension(extension)
-            await send(f"擴充功能 '{extension}' 卸載成功！", ephemeral=True)
+            await send(f"✅ Unload extension '{extension}' success!", ephemeral=True)
         except Exception as e:
-            await send(f"卸載擴充功能 '{extension}' 時發生錯誤：{e}", ephemeral=True)
-
-    @unload_ext.error
-    async def owner_only_error(interaction: discord.Interaction, error):
-        if isinstance(error, app_commands.CheckFailure):
-            await interaction.response.send_message("🚫 你沒有權限使用這個指令！", ephemeral=True)
+            await send(f"❌ Proccess fail. Extension: '{extension}', fail: {e}", ephemeral=True)
     
-    @tree.command(name="list_ext", description="檢視目前載入的擴充功能（僅管理員可用）")
-    @is_owner()
+    # List extension function
+    @tree.command(name="list_ext", description="🔍 List extension (admin only)")
+    @admin_only
     async def list_ext(interaction: discord.Interaction):
-        # 檢視目前載入的擴充功能
         extensions = list(bot.extensions.keys())
-        
+        send = interaction.response.send_message
         if extensions:
             extensions_list = "\n".join(extensions)
-            await interaction.response.send_message(f"目前載入的擴充功能：\n{extensions_list}", ephemeral=True)
-        else:
-            await interaction.response.send_message("目前沒有載入任何擴充功能。", ephemeral=True)
+            await send(f"📋 Loaded extensions: \n{extensions_list}", ephemeral=True)
+        else: await send("❌ Did not have any extension be load.", ephemeral=True)
 
+    # Permission error proccess
+    @load_ext.error
     @unload_ext.error
-    async def owner_only_error(interaction: discord.Interaction, error):
+    @list_ext.error
+    async def admin_only_error(interaction: discord.Interaction, error):
         if isinstance(error, app_commands.CheckFailure):
-            await interaction.response.send_message("🚫 你沒有權限使用這個指令！", ephemeral=True)
+            await interaction.response.send_message("❌ You do not have permission to use this command!", ephemeral=True)
 
-    # 啟動 Bot
+    # Start Bot
     bot.run(TOKEN)
 
-if __name__ == "__main__":
-    # 初始化模型
-    initialize_models()
-
-    # 啟動主程式
-    main()
+if __name__ == "__main__": main()

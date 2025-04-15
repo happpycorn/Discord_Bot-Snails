@@ -1,5 +1,5 @@
 .env
-Asset\wordCloud.png
+config.json
 
 __pycache__/
 *.pyc

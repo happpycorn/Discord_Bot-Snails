@@ -1,10 +1,10 @@
 import re
+import json
 import discord
 from ollama import generate
 from discord.ext import commands, tasks
 from Database.msgDB import MsgDB
 from datetime import datetime, timedelta, time, timezone
-import textwrap
 
 import functools
 import typing
@@ -16,27 +16,9 @@ def to_thread(func: typing.Callable) -> typing.Coroutine:
         return await asyncio.to_thread(func, *args, **kwargs)
     return wrapper
 
-class ChannelDropdown(discord.ui.Select):
-    def __init__(self, channels, callback_function):
-
-        self.callback_function = callback_function
-
-        options = [
-            discord.SelectOption(label=channel, value=channel) for channel in channels
-        ]
-        super().__init__(placeholder="選擇一個頻道", options=options)
-
-    async def callback(self, interaction: discord.Interaction): await self.callback_function(self.values[0], interaction)
-
-class ChannelSelectView(discord.ui.View):
-    def __init__(self, channels, callback_function):
-        super().__init__(timeout=60)  # 設定選單的存活時間
-        self.add_item(ChannelDropdown(channels, callback_function))
-
 class MsgAnalyzer(commands.Cog):
-
-    allowed_categories = ["1335259735380983930"]
-    send_channel_id = 1349594509738115072
+    FETCH_TIME_AREA = 8
+    MODULE_NAME = 'cwchang/llama3-taide-lx-8b-chat-alpha1:latest'
 
     # Init : Bot and Database
     def __init__(self, bot) -> None:
@@ -44,44 +26,37 @@ class MsgAnalyzer(commands.Cog):
         self.bot = bot
         self.message_database = MsgDB()
 
-        if not self.send_scheduled_message.is_running():  # 確保定時任務不會重複啟動
+        # Ensure that scheduled tasks are not started repeatedly
+        if not self.send_scheduled_message.is_running():
             self.send_scheduled_message.start()
 
-        send_channel_obj = bot.get_channel(self.send_channel_id)
-        if send_channel_obj:
-            self.send_channel = send_channel_obj.name  # 只存頻道名稱
-        else:
-            self.send_channel = None  # 避免 SQL 查詢時發生錯誤
+        # Read Config : Channel for send weekly reports
+        with open(r'config.json', 'r') as f : config = json.load(f)
+        self.send_channel_id = config.get("send_channel_id") or []
     
+    # Get channels updated within a week
     def _getChannels(self):
-        """列出最近一週內有新訊息的頻道"""
-        one_week_ago = datetime.now() - timedelta(days=7)
+        one_week_ago = datetime.now() - timedelta(days=self.FETCH_TIME_AREA)
+        query_params = [one_week_ago.strftime("%Y-%m-%d %H:%M:%S")]
 
-        placeholders = ",".join("?" * len(self.allowed_categories))
-
-        # SQL 查詢參數
-        query_params = [one_week_ago.isoformat(), *self.allowed_categories]
-
-        # 構建 SQL 查詢
+        # Constructing SQL queries
         sql_query = f"""
             SELECT DISTINCT {self.message_database.C_CHANNEL}
             FROM {self.message_database.TABLE_NAME}
             WHERE {self.message_database.C_TIMESTAMP} >= ?
-            AND {self.message_database.C_CATEGORY} IN ({placeholders})
         """
 
-        # 只有當 send_channel 存在時，才排除它
-        if self.send_channel:
+        # Exclude send channel if it exists
+        if self.send_channel_id:
             sql_query += f" AND {self.message_database.C_CHANNEL} != ?"
-            query_params.append(self.send_channel)
+            query_params.append(self.send_channel_id)
 
         result = self.message_database.getData(sql_query, query_params)
-
-        return [row[0] for row in result]
+        return [] if not result else [row[0] for row in result]
     
+    # Get channel updates for the week
     def _getChannelMessagesText(self, channel_name):
-        """擷取特定頻道最近一週的所有訊息，並限制最大字數，包含時間戳和作者"""
-        one_week_ago = datetime.now() - timedelta(days=7)
+        one_week_ago = datetime.now() - timedelta(days=self.FETCH_TIME_AREA)
 
         result = self.message_database.getData(
             f"""
@@ -91,27 +66,24 @@ class MsgAnalyzer(commands.Cog):
             AND timestamp >= ? 
             ORDER BY timestamp ASC;
             """,
-            (channel_name, one_week_ago.isoformat())
+            (channel_name, one_week_ago.strftime("%Y-%m-%d %H:%M:%S"))
         )
 
-        # 格式化訊息，包括時間戳和作者
         messages = [
-            f"[{row[1]}] {row[2]}: {row[0]}"
+            f"[{datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S').strftime('%m/%d %H:%M')}] {row[2]}: {row[0]}"
             for row in result
         ]
 
-        # 轉換為單一文字
+        # Convert to String
         return "\n".join(messages)
     
+    # Generate a summary based on a specific channel
     @to_thread
     def _summarizeChannel(self, channel):
-        """根據特定頻道生成摘要"""
-
         text = self._getChannelMessagesText(channel)
 
-        # 使用 generate() 產生摘要
         response = generate(
-            model='cwchang/llama3-taide-lx-8b-chat-alpha1:latest', 
+            model=self.MODULE_NAME,
             prompt=f"""
             請簡明扼要地總結以下聊天紀錄：
             
@@ -124,38 +96,12 @@ class MsgAnalyzer(commands.Cog):
             """
         )
 
-        # 確保獲取回應的內容
         summary = re.sub(
             r'<think>.*?</think>', '', 
             response["response"], flags=re.DOTALL
-        ).strip()  # 這裡確保 summary 是字串
+        ).strip()
 
         return channel, summary
-    
-    async def callback_function(self, channel, interaction):
-        await interaction.response.send_message(f"你選擇的頻道是：{channel}，請稍等 5~10 分鐘進行總結", ephemeral=True)
-        start_time = datetime.now()
-        channel, summary = await self._summarizeChannel(channel)
-        elapsed_time = datetime.now() - start_time
-        content = []
-        content.append(f"對話頻道：{channel}")
-        content.append(f"---")
-        content.append(f"訊息摘要：\n{summary}")
-        content.append(f"---")
-        content.append(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")
-        text = textwrap.dedent("\n".join(content))
-        await interaction.followup.send(content=text)
-
-    @discord.app_commands.command(name="select_and_summarize_channel", description="選擇頻道並進行總結")
-    async def select_and_summarize_channel(self, interaction: discord.Interaction):
-        channels = self._getChannels()  # 取得頻道列表
-        if not channels:
-            await interaction.response.send_message("最近一週沒有活躍的頻道。", ephemeral=True)
-            return
-
-        # 假設你有一個 ChannelSelectView 類別
-        view = ChannelSelectView(channels, self.callback_function)
-        await interaction.response.send_message("請選擇你要總結的頻道：", view=view, ephemeral=True)
 
     @tasks.loop(time=time(hour=23, minute=0, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
     async def send_scheduled_message(self):
@@ -173,17 +119,35 @@ class MsgAnalyzer(commands.Cog):
 
         results = await asyncio.gather(*(self._summarizeChannel(channel) for channel in channels))
 
-        elapsed_time = datetime.now() - start_time
+        print("第一階段完成")
 
         # 輸出結果
+        content = []
         for channel, summary in results:
-            content = []
             content.append(f"對話頻道：{channel}")
             content.append(f"---")
             content.append(f"訊息摘要：\n{summary}")
             content.append(f"---")
-            await send_channel.send("\n".join(content))
+        text = "\n".join(content)
 
+        response = generate(
+            model=self.MODULE_NAME,
+            prompt=f"""
+            你是個專業的知識整理助手，請根據以下多個頻道的訊息摘要，撰寫一份高度濃縮、邏輯清楚的總結，方便各組成員快速了解整體狀況。
+            請著重於：
+            - 關鍵結論
+            - 爭議或需要決策的事項
+            - 下一步建議
+            - 以組為單位撰寫摘要
+            
+            摘要資料如下：
+
+            {text}
+            """
+        )
+        await send_channel.send("\n".join(content))
+
+        elapsed_time = datetime.now() - start_time
         await send_channel.send(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")
 
     @commands.Cog.listener()
