@@ -7,8 +7,7 @@ import traceback
 
 def main():
     # Load config
-    with open('config.json') as f:
-        config = json.load(f)
+    with open('config.json') as f: config = json.load(f)
     TOKEN = config['discord_token']
     ADMIN_ID = config['admin_id']
 
@@ -93,7 +92,4 @@ def main():
     # Start Bot
     bot.run(TOKEN)
 
-if __name__ == "__main__":
-
-    # 啟動主程式
-    main()
+if __name__ == "__main__": main()

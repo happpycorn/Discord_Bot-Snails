@@ -51,23 +51,23 @@ class MsgSaver(commands.Cog):
 
         return is_in_channel or is_in_category
 
-    
+    # Fetch passed Message
     @commands.command(name='fetch_messages')
     async def fetch_messages(self, ctx, days: int = 7):
-        """抓取過去指定天數的訊息並存入資料庫"""
-        # 取得頻道物件
+
+        # Get Channel
         channel = ctx.channel
         if not channel:
             await ctx.send(f"頻道 {channel.name} 不存在。")
             return
         
-        # 計算抓取訊息的起始時間 (過去多少天)
+        # Caculate Time
         since_date = datetime.datetime.now() - datetime.timedelta(days=days)
 
-        # 抓取過去的訊息
+        # Fetch Message
         async for message in channel.history(after=since_date):
             if not await self.msgDB.message_exists(message.id):
-                # 如果訊息不在資料庫中，則存入資料庫
+                # Save Message if Message not Exist
                 await self._saveMessage(message)
 
         await ctx.send(f"已成功抓取並儲存過去 {days} 天的訊息。")
