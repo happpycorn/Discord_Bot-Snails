@@ -19,7 +19,7 @@ def main():
     # Init Discord Bot
     intents = discord.Intents.default()
     intents.message_content = True
-    bot = commands.Bot(command_prefix=None, intents=intents)
+    bot = commands.Bot(command_prefix="/", intents=intents)
     tree = bot.tree
 
     # Permissions check decoration
@@ -83,7 +83,13 @@ def main():
 
     # Permission error proccess
     @load_ext.error
+    async def admin_only_error(interaction: discord.Interaction, error):
+        if isinstance(error, app_commands.CheckFailure):
+            await interaction.response.send_message("❌ You do not have permission to use this command!", ephemeral=True)
     @unload_ext.error
+    async def admin_only_error(interaction: discord.Interaction, error):
+        if isinstance(error, app_commands.CheckFailure):
+            await interaction.response.send_message("❌ You do not have permission to use this command!", ephemeral=True)
     @list_ext.error
     async def admin_only_error(interaction: discord.Interaction, error):
         if isinstance(error, app_commands.CheckFailure):

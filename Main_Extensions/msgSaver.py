@@ -68,7 +68,7 @@ class MsgSaver(commands.Cog):
         async for message in channel.history(after=since_date):
             if not await self.msgDB.message_exists(message.id):
                 # Save Message if Message not Exist
-                await self._saveMessage(message)
+                self._saveMessage(message)
 
         await ctx.send(f"已成功抓取並儲存過去 {days} 天的訊息。")
 
