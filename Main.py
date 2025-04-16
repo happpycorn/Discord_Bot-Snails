@@ -1,20 +1,17 @@
 # Import
 import json
 import discord
-from discord import app_commands
-from discord.ext import commands
-import traceback
+from datetime import time, datetime
+from discord.ext import tasks, commands
+
+from msgSaver import MsgSaver
+from msgAnalyzer import MsgAnalyzer
 
 def main():
     # Load config
     with open('config.json') as f: config = json.load(f)
     TOKEN = config['discord_token']
-    ADMIN_ID = config['admin_id']
-
-    EXT_LIST = [
-        "Main_Extensions.msgSaver",
-        "Main_Extensions.msgAnalyzer"
-    ]
+    SEND_CHANNEL_ID = config['send_channel_id']
 
     # Init Discord Bot
     intents = discord.Intents.default()
@@ -22,78 +19,36 @@ def main():
     bot = commands.Bot(command_prefix="/", intents=intents)
     tree = bot.tree
 
-    # Permissions check decoration
-    async def is_admin(interaction: discord.Interaction):
-        return interaction.user.id == ADMIN_ID
-    admin_only = app_commands.check(is_admin)
+    # Define method
+    msgSaver = MsgSaver()
+    msgAnalyzer = MsgAnalyzer()
 
     # On ready function
     @bot.event
     async def on_ready():
-        for ext in EXT_LIST:
-            try:
-                await bot.load_extension(ext)
-                print(f"✅ Extension {ext} load success")
-            except Exception as e: 
-                print(f"❌ Load extension {ext} fail: {e}")
-                print("Detailed error trace:")
-                traceback.print_exc()
-        await tree.sync()
+        if not send_scheduled_message.is_running():
+            send_scheduled_message.start()
         print(f'🤖 Logged in as {bot.user}')
-
-    # Load extension function
-    @tree.command(name="load_ext", description="↘️ Load or Reload extension (admin only)")
-    @admin_only
-    async def load_ext(interaction: discord.Interaction, extension: str):
-        send = interaction.response.send_message
-        try:
-            if extension in bot.extensions:
-                await bot.reload_extension(extension)
-                action = "Reload"
-            else:
-                await bot.load_extension(extension)
-                action = "Load"
-
-            await tree.sync()
-            await send(f"✅ {action} extension '{extension}' success!", ephemeral=True)
-        except Exception as e:
-            await send(f"❌ {action} extension '{extension}' failed. Error: {e}", ephemeral=True)
-
-    # Unload extension function
-    @tree.command(name="unload_ext", description="↖️ Unload extension (admin only)")
-    @admin_only
-    async def unload_ext(interaction: discord.Interaction, extension: str):
-        send = interaction.response.send_message
-        try:
-            await bot.unload_extension(extension)
-            await send(f"✅ Unload extension '{extension}' success!", ephemeral=True)
-        except Exception as e:
-            await send(f"❌ Proccess fail. Extension: '{extension}', fail: {e}", ephemeral=True)
     
-    # List extension function
-    @tree.command(name="list_ext", description="🔍 List extension (admin only)")
-    @admin_only
-    async def list_ext(interaction: discord.Interaction):
-        extensions = list(bot.extensions.keys())
-        send = interaction.response.send_message
-        if extensions:
-            extensions_list = "\n".join(extensions)
-            await send(f"📋 Loaded extensions: \n{extensions_list}", ephemeral=True)
-        else: await send("❌ Did not have any extension be load.", ephemeral=True)
+    # On message function
+    @bot.event
+    async def on_message(message):
+        if message.author.bot: return # 忽略機器人訊息
+        msgSaver.saveMessage(message)
 
-    # Permission error proccess
-    @load_ext.error
-    async def admin_only_error(interaction: discord.Interaction, error):
-        if isinstance(error, app_commands.CheckFailure):
-            await interaction.response.send_message("❌ You do not have permission to use this command!", ephemeral=True)
-    @unload_ext.error
-    async def admin_only_error(interaction: discord.Interaction, error):
-        if isinstance(error, app_commands.CheckFailure):
-            await interaction.response.send_message("❌ You do not have permission to use this command!", ephemeral=True)
-    @list_ext.error
-    async def admin_only_error(interaction: discord.Interaction, error):
-        if isinstance(error, app_commands.CheckFailure):
-            await interaction.response.send_message("❌ You do not have permission to use this command!", ephemeral=True)
+    @tasks.loop(time=time(hour=23, minute=0, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
+    async def send_scheduled_message(self):
+        if datetime.now().weekday() != 4: return
+        channel = bot.get_channel(SEND_CHANNEL_ID)
+        if not channel: return
+
+        start_time = datetime.now()
+
+        response = await msgAnalyzer.scheduled_message()
+        await channel.send("\n".join(response))
+
+        elapsed_time = datetime.now() - start_time
+        await channel.send(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")
 
     # Start Bot
     bot.run(TOKEN)

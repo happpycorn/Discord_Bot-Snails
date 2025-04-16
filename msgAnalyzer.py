@@ -1,10 +1,7 @@
 import re
-import json
-import discord
 from ollama import generate
-from discord.ext import commands, tasks
-from Database.msgDB import MsgDB
-from datetime import datetime, timedelta, time, timezone
+from msgDB import MsgDB
+from datetime import datetime, timedelta
 
 import functools
 import typing
@@ -16,23 +13,14 @@ def to_thread(func: typing.Callable) -> typing.Coroutine:
         return await asyncio.to_thread(func, *args, **kwargs)
     return wrapper
 
-class MsgAnalyzer(commands.Cog):
+class MsgAnalyzer():
     FETCH_TIME_AREA = 8
     MODULE_NAME = 'cwchang/llama3-taide-lx-8b-chat-alpha1:latest'
 
     # Init : Bot and Database
-    def __init__(self, bot) -> None:
+    def __init__(self) -> None:
 
-        self.bot = bot
         self.message_database = MsgDB()
-
-        # Ensure that scheduled tasks are not started repeatedly
-        if not self.send_scheduled_message.is_running():
-            self.send_scheduled_message.start()
-
-        # Read Config : Channel for send weekly reports
-        with open(r'config.json', 'r') as f : config = json.load(f)
-        self.send_channel_id = config.get("send_channel_id") or []
     
     # Get channels updated within a week
     def _getChannels(self):
@@ -103,16 +91,7 @@ class MsgAnalyzer(commands.Cog):
 
         return channel, summary
 
-    @tasks.loop(time=time(hour=23, minute=0, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
-    async def send_scheduled_message(self):
-
-        if datetime.now(timezone.utc).weekday() != 4: return # 星期五是 `4`，不是的話就跳過
-        
-        print("start")
-        send_channel = self.bot.get_channel(self.send_channel)
-        if not send_channel: return
-
-        start_time = datetime.now()
+    async def scheduled_message(self):
 
         channels = self._getChannels()
         print("資料庫中的頻道：", channels)
@@ -145,18 +124,5 @@ class MsgAnalyzer(commands.Cog):
             {text}
             """
         )
-        await send_channel.send("\n".join(response))
 
-        elapsed_time = datetime.now() - start_time
-        await send_channel.send(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        if not self.send_scheduled_message.is_running():  # 確保不會重複啟動
-            self.send_scheduled_message.start()
-
-    @discord.app_commands.command(name="test_msg", description="測試訊息")
-    async def test_msg(self, interaction: discord.Interaction):
-        await interaction.response.send_message(f"這是測試訊息。定時任務執行狀態: {self.send_scheduled_message.is_running()}")
-
-async def setup(bot) : await bot.add_cog(MsgAnalyzer(bot))
+        return response

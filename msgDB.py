@@ -1,12 +1,9 @@
-import os
 import sqlite3
 
 class MsgDB:
 
     # Database setting
-    FOLDER_PATH = "Database"
-    DATABASE_NAME = "DB.db"
-    DB_PATH = os.path.join(FOLDER_PATH, DATABASE_NAME)
+    DB_PATH = "DB.db"
 
     TABLE_NAME = "Messages"
     C_ID = "message_id"
