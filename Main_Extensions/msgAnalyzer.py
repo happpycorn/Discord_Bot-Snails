@@ -145,7 +145,7 @@ class MsgAnalyzer(commands.Cog):
             {text}
             """
         )
-        await send_channel.send("\n".join(content))
+        await send_channel.send("\n".join(response))
 
         elapsed_time = datetime.now() - start_time
         await send_channel.send(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")

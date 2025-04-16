@@ -1,7 +1,8 @@
 import json
+import discord
+import datetime
 from discord.ext import commands
 from Database.msgDB import MsgDB
-import datetime
 
 class MsgSaver(commands.Cog):
 
@@ -52,7 +53,7 @@ class MsgSaver(commands.Cog):
         return is_in_channel or is_in_category
 
     # Fetch passed Message
-    @commands.command(name='fetch_messages')
+    @discord.app_commands.command(name="test_msg", description="測試訊息")
     async def fetch_messages(self, ctx, days: int = 7):
 
         # Get Channel
