@@ -13,49 +13,85 @@ The structure and purpose of each folder in the project.
 
 ```bash
 Discord_Bot-Snails/
-├── Asset/
-│   ├── stopWords.txt               # List of stop words for LDA analysis
-│   └── config.json                 # Configuration file containing allowed channel and category IDs
 ├── Database/
-│   ├── db.py                       # Module with database functions
-│   └── Message.db                  # SQLite database file for storing messages
-├── Main_Extensions/
-│   ├── msgAnalyzer.py              # Module for analyzing messages
-│   └── msgSaver.py                 # Module for saving messages
+│   ├── msgDB.py                    # Module with database functions
+│   └── DB.db                       # SQLite database file for storing messages
 ├── Environment_Setting/
 │   ├── environment.yml             # Conda environment configuration file
 │   └── requirements.txt            # pip environment dependencies file
-├── .env                            # Environment variables file (manually created; see setup instructions)
+├── Main_Extensions/
+│   ├── msgAnalyzer.py              # Module for analyzing messages
+│   └── msgSaver.py                 # Module for saving messages
 ├── .gitignore                      # Specifies files and directories to be ignored by Git
 ├── main.py                         # Entry point for the Discord bot
+├── config.json                     # Configuration file containing allowed channel and category IDs
 └── README.md                       # Project overview and setup instructions
 ```
 
 ## Setup
 
-1. Create a `.env` file and add the following:
+### 🛠️ Step 1: Create config.json
 
-    ```bash
-    DISCORD_TOKEN=<Your_DC_Bot_Token>
-    ```
+Create a config.json file and add the following:
 
-2. Install requirements from `requirement.txt`
+#### 🧩 Basic Configuration
 
-    You can use Pip:
+```json
+{
+    "discord_token": "ABC12345678",
+    "send_channel_id": 1234567812345678,
+    "admin_id": 1234567812345678
+}
+```
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+| Key | Description (English) |
+|-|-|
+| discord_token | Your Discord bot token |
+| send_channel_id | Default channel ID for sending messages |
+| admin_id | Discord ID of the admin user (for privileged access) |
 
-    or use Conda:
+#### ✅ Optional: Use when you don't fetch every channel
 
-    ```bash
-    conda env create -f environment.yml
-    conda activate Snails
-    ```
+```json
+{
+    "discord_token": "ABC12345678",
+    "send_channel_id" : 1234567812345678,
+    "admin_id": 1234567812345678,
+    "allow_category_ids": [
+        "1234567812345678"
+    ],
+    "allow_channel_ids": [
+        "1234567812345678"
+    ]
+}
+```
 
-3. Run `main.py`:
+| 欄位 Key | Description (English) |
+|-|-|
+| allow_category_ids | List of category IDs where the bot is allowed to fetch messages |
+| allow_channel_ids | List of specific channel IDs where the bot can fetch messages |
 
-    ```bash
-    python main.py
-    ```
+### 🛠️ Step 2: Install Requirements
+
+You can install the required packages using `pip` or `conda`.
+
+#### 📦 Using pip
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 🐍 Using conda
+
+```bash
+conda env create -f environment.yml
+conda activate Snails
+```
+
+### 🛠️ Step 3: Run the Main Script
+
+Make sure you're inside your virtual environment, then run:
+
+```bash
+python main.py
+```
