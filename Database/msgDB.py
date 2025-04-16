@@ -53,7 +53,7 @@ class MsgDB:
         query = f"""
         INSERT INTO {self.TABLE_NAME} (
             {self.C_ID}, {self.C_AUTHOR}, {self.C_CONTENT},
-            {self.C_CHANNEL}, {self.C_CATEGORY}, {self.C_TIMESTAMP},
+            {self.C_CHANNEL}, {self.C_CATEGORY}, {self.C_TIMESTAMP}
         ) VALUES (?, ?, ?, ?, ?, ?)
         """
         cursor.execute(query, (
@@ -69,7 +69,7 @@ class MsgDB:
         conn.close()
     
     # Get data
-    def getData(self, arg_text, arg_vars):
+    def getData(self, arg_text, arg_vars=()):
         
         with sqlite3.connect(self.DB_PATH) as conn:
             cursor = conn.cursor()
@@ -78,6 +78,6 @@ class MsgDB:
     
     async def message_exists(self, message_id: int) -> bool:
         """檢查訊息是否已經在資料庫中"""
-        query = f"SELECT COUNT(*) FROM {self.TABLE_NAME} WHERE id = {message_id}"
-        result = self.msgDB.execute_query(query)
+        query = f"SELECT COUNT(*) FROM {self.TABLE_NAME} WHERE {self.C_ID} = {message_id}"
+        result = self.getData(query)
         return result[0][0] > 0
