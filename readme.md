@@ -44,7 +44,7 @@ Create a config.json file and add the following:
 }
 ```
 
-| Key | Description (English) |
+| Key | Description |
 |-|-|
 | discord_token | Your Discord bot token |
 | send_channel_id | Default channel ID for sending messages |
@@ -66,7 +66,7 @@ Create a config.json file and add the following:
 }
 ```
 
-| 欄位 Key | Description (English) |
+| Key | Description |
 |-|-|
 | allow_category_ids | List of category IDs where the bot is allowed to fetch messages |
 | allow_channel_ids | List of specific channel IDs where the bot can fetch messages |
