@@ -53,7 +53,7 @@ class MsgSaver(commands.Cog):
         return is_in_channel or is_in_category
 
     # Fetch passed Message
-    @discord.app_commands.command(name="test_msg", description="測試訊息")
+    @discord.app_commands.command(name="fetch_msg", description="抓取一周內的訊息")
     async def fetch_messages(self, ctx, days: int = 7):
 
         # Get Channel
