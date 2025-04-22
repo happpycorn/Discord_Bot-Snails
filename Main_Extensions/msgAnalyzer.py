@@ -1,4 +1,3 @@
-import re
 import json
 import discord
 from ollama import generate
