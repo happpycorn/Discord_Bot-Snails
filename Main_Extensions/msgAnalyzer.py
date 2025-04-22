@@ -119,10 +119,10 @@ class MsgAnalyzer(commands.Cog):
         return response["response"]
 
     
-    @tasks.loop(time=time(hour=2, minute=50, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
+    @tasks.loop(time=time(hour=23, minute=00, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
     async def send_scheduled_message(self):
 
-        if datetime.now(timezone.utc).weekday() != 1: return # 星期五是 `4`，不是的話就跳過
+        if datetime.now(timezone.utc).weekday() != 3: return # 星期五是 `4`，不是的話就跳過
         
         print("start")
         send_channel = self.bot.get_channel(self.send_channel_id)
