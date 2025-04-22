@@ -96,20 +96,37 @@ class MsgAnalyzer(commands.Cog):
             """
         )
 
-        summary = re.sub(
-            r'<think>.*?</think>', '', 
-            response["response"], flags=re.DOTALL
-        ).strip()
+        return channel, response["response"]
+    
+    @to_thread
+    def _summarizeSummarize(self, summarize):
+        response = generate(
+            model=self.MODULE_NAME,
+            prompt=f"""
+            你是個專業的知識整理助手，請根據以下多個頻道的訊息摘要，撰寫一份高度濃縮、邏輯清楚的總結，方便各組成員快速了解整體狀況。
+            請著重於：
+            - 關鍵結論
+            - 爭議或需要決策的事項
+            - 下一步建議
+            - 以組為單位撰寫摘要
 
-        return channel, summary
+            這之中主要可以分為三組，分別是航電組、結構組與酬載組，麻煩將訊息分為這三組，並依照上面的規則進行整理
+            
+            摘要資料如下：
 
-    @tasks.loop(time=time(hour=23, minute=0, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
+            {summarize}
+            """
+        )
+        return response["response"]
+
+    
+    @tasks.loop(time=time(hour=2, minute=50, second=0))  # 設定 UTC 23:01 → 台灣時間 07:01
     async def send_scheduled_message(self):
 
-        if datetime.now(timezone.utc).weekday() != 4: return # 星期五是 `4`，不是的話就跳過
+        if datetime.now(timezone.utc).weekday() != 1: return # 星期五是 `4`，不是的話就跳過
         
         print("start")
-        send_channel = self.bot.get_channel(self.send_channel)
+        send_channel = self.bot.get_channel(self.send_channel_id)
         if not send_channel: return
 
         start_time = datetime.now()
@@ -130,22 +147,10 @@ class MsgAnalyzer(commands.Cog):
             content.append(f"---")
         text = "\n".join(content)
 
-        response = generate(
-            model=self.MODULE_NAME,
-            prompt=f"""
-            你是個專業的知識整理助手，請根據以下多個頻道的訊息摘要，撰寫一份高度濃縮、邏輯清楚的總結，方便各組成員快速了解整體狀況。
-            請著重於：
-            - 關鍵結論
-            - 爭議或需要決策的事項
-            - 下一步建議
-            - 以組為單位撰寫摘要
-            
-            摘要資料如下：
+        response = await self._summarizeSummarize(text)
 
-            {text}
-            """
-        )
-        await send_channel.send("\n".join(response))
+        print(response)
+        await send_channel.send(response)
 
         elapsed_time = datetime.now() - start_time
         await send_channel.send(f"總結時間：{elapsed_time.total_seconds():.2f} 秒")
